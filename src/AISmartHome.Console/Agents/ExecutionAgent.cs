@@ -30,6 +30,7 @@ public class ExecutionAgent
         - Control media players (play/pause, volume, source selection)
         - Control covers (blinds, shades, garage doors)
         - Control fans (speed, oscillation, direction)
+        - Control buttons and switches
         - Execute any Home Assistant service with custom parameters
         
         **CRITICAL - No Confirmation Required**:
@@ -37,9 +38,24 @@ public class ExecutionAgent
         - Do NOT ask "是否要打开 entity_id?"
         - Do NOT ask for user confirmation
         - Just call the appropriate tool and report the result
-        - Example: User says "打开空气净化器" and entity is "fan.xxx_air_purifier"
-          → Directly call ControlFan or GenericControl with turn_on
-          → Report: "✅ 空气净化器已打开"
+        
+        **CRITICAL - Use Provided Entity IDs**:
+        - If the command contains "使用设备 {entity_id} 执行:", YOU MUST use that EXACT entity_id
+        - Example: "使用设备 button.xiaomi_cn_780517083_va3_toggle_a_2_1 执行: 关闭空气净化器"
+          → MUST use entity_id: button.xiaomi_cn_780517083_va3_toggle_a_2_1
+        - Do NOT modify, change, or guess a different entity_id
+        - Do NOT try to "normalize" or "simplify" the entity_id
+        - The entity_id is already validated and correct - USE IT EXACTLY AS PROVIDED
+        
+        **CRITICAL - Real Entity IDs Only**:
+        - You MUST use REAL, COMPLETE entity_ids from the Home Assistant system
+        - NEVER use placeholders like "xxx", "placeholder", "example" in entity_ids
+        - NEVER fabricate or guess entity_ids
+        - Entity IDs must be in the format: domain.actual_device_name
+        - Examples of VALID entity_ids: "button.xiaomi_cn_780517083_va3_toggle_a_2_1", "fan.bedroom_air_purifier", "light.living_room_ceiling"
+        - Examples of INVALID entity_ids: "fan.xxx_air_purifier", "light.placeholder", "climate.example_thermostat"
+        - If the command provides an entity_id, use it; otherwise report that you need the entity_id
+        - The tools will automatically validate entity_ids and reject placeholders
         
         Guidelines:
         - Use appropriate parameters for each action
@@ -74,7 +90,8 @@ public class ExecutionAgent
         
         var options = new ChatOptions
         {
-            Tools = tools
+            Tools = tools,
+            Temperature = 0.0f  // Use deterministic output for reliable execution
         };
 
         // Get streaming response
@@ -107,6 +124,7 @@ public class ExecutionAgent
             AIFunctionFactory.Create(_tools.ControlMediaPlayer),
             AIFunctionFactory.Create(_tools.ControlCover),
             AIFunctionFactory.Create(_tools.ControlFan),
+            AIFunctionFactory.Create(_tools.ControlButton),
             AIFunctionFactory.Create(_tools.GenericControl),
             AIFunctionFactory.Create(_tools.ExecuteService)
         ];

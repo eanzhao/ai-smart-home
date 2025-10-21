@@ -37,7 +37,7 @@ class Program
         System.Console.WriteLine("🔗 Connecting to Home Assistant...");
 
         // Initialize Home Assistant client
-        var haClient = new HomeAssistantClient(haBaseUrl, haToken);
+        var haClient = new HomeAssistantClient(haBaseUrl, haToken, ignoreSslErrors: true);
         
         // Test connection
         var isConnected = await haClient.PingAsync();
@@ -73,11 +73,13 @@ class Program
         // Initialize tools
         var discoveryTools = new DiscoveryTools(entityRegistry, serviceRegistry);
         var controlTools = new ControlTools(haClient, entityRegistry, serviceRegistry);
+        var validationTools = new ValidationTools(haClient, entityRegistry);
 
         // Initialize agents
         var discoveryAgent = new DiscoveryAgent(chatClient, discoveryTools);
         var executionAgent = new ExecutionAgent(chatClient, controlTools);
-        var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent);
+        var validationAgent = new ValidationAgent(chatClient, validationTools);
+        var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent, validationAgent);
 
         System.Console.WriteLine("✅ Multi-Agent system initialized");
         System.Console.WriteLine("\n" + "=".PadRight(60, '='));

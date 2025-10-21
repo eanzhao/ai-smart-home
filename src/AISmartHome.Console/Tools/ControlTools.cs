@@ -25,6 +25,54 @@ public class ControlTools
         _serviceRegistry = serviceRegistry;
     }
 
+    /// <summary>
+    /// Validate entity_id format and existence
+    /// </summary>
+    private async Task<(bool isValid, string errorMessage)> ValidateEntityIdAsync(string entityId, string expectedDomain = null)
+    {
+        // Check for placeholder or invalid patterns
+        if (string.IsNullOrWhiteSpace(entityId))
+        {
+            return (false, "❌ Entity ID不能为空");
+        }
+
+        if (entityId.Contains("xxx") || entityId.Contains("placeholder") || entityId.Contains("example"))
+        {
+            return (false, $"❌ 检测到占位符entity_id: {entityId}。请使用真实的设备ID。");
+        }
+
+        // Validate format: domain.entity_name
+        if (!entityId.Contains('.'))
+        {
+            return (false, $"❌ Entity ID格式错误: {entityId}。正确格式应为 'domain.entity_name'");
+        }
+
+        var parts = entityId.Split('.');
+        if (parts.Length != 2)
+        {
+            return (false, $"❌ Entity ID格式错误: {entityId}。正确格式应为 'domain.entity_name'");
+        }
+
+        var domain = parts[0];
+        
+        // Check expected domain if provided
+        if (expectedDomain != null && !domain.Equals(expectedDomain, StringComparison.OrdinalIgnoreCase))
+        {
+            return (false, $"❌ Entity ID域名错误: 期望 '{expectedDomain}'，实际为 '{domain}'");
+        }
+
+        // Check if entity exists in registry
+        var entities = await _entityRegistry.GetAllEntitiesAsync();
+        var entityExists = entities.Any(e => e.EntityId.Equals(entityId, StringComparison.OrdinalIgnoreCase));
+        
+        if (!entityExists)
+        {
+            return (false, $"❌ 设备 {entityId} 不存在。请先使用发现工具查找正确的entity_id。");
+        }
+
+        return (true, string.Empty);
+    }
+
     [Description("Control a light (turn on/off, adjust brightness, change color). " +
                  "Supports setting brightness percentage, RGB color, color temperature, and transition time.")]
     public async Task<string> ControlLight(
@@ -42,6 +90,14 @@ public class ControlTools
         int? transition = null)
     {
         System.Console.WriteLine($"[TOOL] ControlLight called: entity={entityId}, action={action}, brightness={brightnessPct}");
+        
+        // Validate entity_id
+        var (isValid, errorMessage) = await ValidateEntityIdAsync(entityId, "light");
+        if (!isValid)
+        {
+            System.Console.WriteLine($"[TOOL] ControlLight validation failed: {errorMessage}");
+            return errorMessage;
+        }
         
         var serviceData = new Dictionary<string, object>
         {
@@ -85,6 +141,16 @@ public class ControlTools
         [Description("Preset mode: 'away', 'eco', 'comfort', optional")]
         string? presetMode = null)
     {
+        System.Console.WriteLine($"[TOOL] ControlClimate called: entity={entityId}, action={action}");
+        
+        // Validate entity_id
+        var (isValid, errorMessage) = await ValidateEntityIdAsync(entityId, "climate");
+        if (!isValid)
+        {
+            System.Console.WriteLine($"[TOOL] ControlClimate validation failed: {errorMessage}");
+            return errorMessage;
+        }
+        
         var serviceData = new Dictionary<string, object>
         {
             ["entity_id"] = entityId
@@ -130,6 +196,16 @@ public class ControlTools
         [Description("Source name, used with 'select_source'")]
         string? source = null)
     {
+        System.Console.WriteLine($"[TOOL] ControlMediaPlayer called: entity={entityId}, action={action}");
+        
+        // Validate entity_id
+        var (isValid, errorMessage) = await ValidateEntityIdAsync(entityId, "media_player");
+        if (!isValid)
+        {
+            System.Console.WriteLine($"[TOOL] ControlMediaPlayer validation failed: {errorMessage}");
+            return errorMessage;
+        }
+        
         var serviceData = new Dictionary<string, object>
         {
             ["entity_id"] = entityId
@@ -153,6 +229,16 @@ public class ControlTools
         [Description("Action: 'turn_on', 'turn_off', or 'toggle'")]
         string action)
     {
+        System.Console.WriteLine($"[TOOL] GenericControl called: entity={entityId}, action={action}");
+        
+        // Validate entity_id
+        var (isValid, errorMessage) = await ValidateEntityIdAsync(entityId);
+        if (!isValid)
+        {
+            System.Console.WriteLine($"[TOOL] GenericControl validation failed: {errorMessage}");
+            return errorMessage;
+        }
+
         var entity = await _entityRegistry.GetEntityAsync(entityId);
         if (entity == null)
             return $"Entity '{entityId}' not found.";
@@ -200,6 +286,16 @@ public class ControlTools
         [Description("Position percentage (0-100), used with 'set_cover_position'")]
         int? position = null)
     {
+        System.Console.WriteLine($"[TOOL] ControlCover called: entity={entityId}, action={action}");
+        
+        // Validate entity_id
+        var (isValid, errorMessage) = await ValidateEntityIdAsync(entityId, "cover");
+        if (!isValid)
+        {
+            System.Console.WriteLine($"[TOOL] ControlCover validation failed: {errorMessage}");
+            return errorMessage;
+        }
+        
         var serviceData = new Dictionary<string, object>
         {
             ["entity_id"] = entityId
@@ -225,6 +321,16 @@ public class ControlTools
         [Description("Direction: 'forward' or 'reverse', used with 'set_direction'")]
         string? direction = null)
     {
+        System.Console.WriteLine($"[TOOL] ControlFan called: entity={entityId}, action={action}");
+        
+        // Validate entity_id
+        var (isValid, errorMessage) = await ValidateEntityIdAsync(entityId, "fan");
+        if (!isValid)
+        {
+            System.Console.WriteLine($"[TOOL] ControlFan validation failed: {errorMessage}");
+            return errorMessage;
+        }
+        
         var serviceData = new Dictionary<string, object>
         {
             ["entity_id"] = entityId
@@ -240,6 +346,30 @@ public class ControlTools
             serviceData["direction"] = direction;
 
         var result = await _client.CallServiceAsync("fan", action, serviceData);
+        return FormatExecutionResult(result);
+    }
+
+    [Description("Control a button. Buttons can only be pressed/triggered.")]
+    public async Task<string> ControlButton(
+        [Description("Entity ID of the button, e.g. 'button.doorbell' or 'button.xiaomi_cn_780517083_va3_toggle_a_2_1'")]
+        string entityId)
+    {
+        System.Console.WriteLine($"[TOOL] ControlButton called: entity={entityId}");
+        
+        // Validate entity_id
+        var (isValid, errorMessage) = await ValidateEntityIdAsync(entityId, "button");
+        if (!isValid)
+        {
+            System.Console.WriteLine($"[TOOL] ControlButton validation failed: {errorMessage}");
+            return errorMessage;
+        }
+        
+        var serviceData = new Dictionary<string, object>
+        {
+            ["entity_id"] = entityId
+        };
+
+        var result = await _client.CallServiceAsync("button", "press", serviceData);
         return FormatExecutionResult(result);
     }
 

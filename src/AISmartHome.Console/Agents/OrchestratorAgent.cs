@@ -13,16 +13,19 @@ public class OrchestratorAgent
     private readonly IChatClient _chatClient;
     private readonly DiscoveryAgent _discoveryAgent;
     private readonly ExecutionAgent _executionAgent;
+    private readonly ValidationAgent _validationAgent;
     private readonly List<ChatMessage> _conversationHistory = new();
 
     public OrchestratorAgent(
         IChatClient chatClient,
         DiscoveryAgent discoveryAgent,
-        ExecutionAgent executionAgent)
+        ExecutionAgent executionAgent,
+        ValidationAgent validationAgent)
     {
         _chatClient = chatClient;
         _discoveryAgent = discoveryAgent;
         _executionAgent = executionAgent;
+        _validationAgent = validationAgent;
         
         // Initialize conversation with system prompt
         _conversationHistory.Add(new ChatMessage(ChatRole.System, GetSystemPrompt()));
@@ -55,7 +58,8 @@ public class OrchestratorAgent
         2. Discovery Agent finds ONLY ONE match: fan.xxx_air_purifier
         3. IMMEDIATELY pass to Execution Agent with the entity_id
         4. Execution Agent executes without asking
-        5. Report: "✅ 空气净化器已打开"
+        5. Validation Agent verifies the operation succeeded
+        6. Report: "✅ 空气净化器已打开" (with verification)
         
         **Only ask for confirmation when**:
         - Multiple devices match (e.g., "打开灯" when there are 5 lights)
@@ -121,6 +125,8 @@ public class OrchestratorAgent
 
             if (intentAnalysis.NeedsExecution)
             {
+                string? entityId = null;
+                
                 // If we need to discover entity first
                 if (intentAnalysis.NeedsEntityResolution)
                 {
@@ -128,21 +134,53 @@ public class OrchestratorAgent
                     var entityQuery = intentAnalysis.EntityQuery ?? userMessage;
                     System.Console.WriteLine($"[DEBUG] Entity query: {entityQuery}");
                     
-                    var discoveryResult = await _discoveryAgent.ProcessQueryAsync(
-                        $"Find device matching: {entityQuery}", ct);
+                    // Extract just the device name, removing action words
+                    var deviceName = ExtractDeviceName(entityQuery);
+                    System.Console.WriteLine($"[DEBUG] Extracted device name: {deviceName}");
+                    
+                    var discoveryResult = await _discoveryAgent.ProcessQueryAsync(deviceName, ct);
                     System.Console.WriteLine($"[DEBUG] Entity resolution result: {discoveryResult.Substring(0, Math.Min(100, discoveryResult.Length))}...");
                     
                     responseBuilder.AppendLine("🔍 Finding device:");
                     responseBuilder.AppendLine(discoveryResult);
+                    
+                    // Extract entity_id from discovery result if it's in "Found: entity_id" format
+                    if (discoveryResult.StartsWith("Found: "))
+                    {
+                        entityId = discoveryResult.Substring(7).Trim();
+                        System.Console.WriteLine($"[DEBUG] Extracted entity_id: {entityId}");
+                    }
                 }
 
                 System.Console.WriteLine("[DEBUG] Routing to ExecutionAgent...");
-                var executionResult = await _executionAgent.ExecuteCommandAsync(
-                    intentAnalysis.ExecutionCommand ?? userMessage, ct);
+                
+                // Build execution command with entity_id if found
+                var executionCommand = intentAnalysis.ExecutionCommand ?? userMessage;
+                if (!string.IsNullOrEmpty(entityId))
+                {
+                    executionCommand = $"使用设备 {entityId} 执行: {executionCommand}";
+                    System.Console.WriteLine($"[DEBUG] Enhanced execution command with entity_id: {executionCommand}");
+                }
+                
+                var executionResult = await _executionAgent.ExecuteCommandAsync(executionCommand, ct);
                 System.Console.WriteLine($"[DEBUG] Execution result length: {executionResult.Length} chars");
                 
                 responseBuilder.AppendLine("\n⚡ Execution:");
                 responseBuilder.AppendLine(executionResult);
+                
+                // Validate the operation if we have an entity_id
+                if (!string.IsNullOrEmpty(entityId))
+                {
+                    System.Console.WriteLine($"[DEBUG] Validating operation for entity: {entityId}");
+                    var validationResult = await _validationAgent.ValidateOperationAsync(
+                        entityId, 
+                        intentAnalysis.ExecutionCommand ?? userMessage, 
+                        expectedState: null);
+                    System.Console.WriteLine($"[DEBUG] Validation result length: {validationResult.Length} chars");
+                    
+                    responseBuilder.AppendLine("\n✅ Verification:");
+                    responseBuilder.AppendLine(validationResult);
+                }
             }
 
             var finalResponse = responseBuilder.ToString();
@@ -262,6 +300,27 @@ public class OrchestratorAgent
     {
         _conversationHistory.Clear();
         _conversationHistory.Add(new ChatMessage(ChatRole.System, GetSystemPrompt()));
+    }
+
+    /// <summary>
+    /// Extract device name from query, removing action words
+    /// </summary>
+    private string ExtractDeviceName(string query)
+    {
+        // Remove common action words in Chinese and English
+        var actionWords = new[] { 
+            "打开", "关闭", "开启", "关上", "启动", "停止", "调节", "设置", "控制",
+            "turn on", "turn off", "open", "close", "start", "stop", "adjust", "set", "control",
+            "的", "这个", "那个"
+        };
+        
+        var deviceName = query.ToLower();
+        foreach (var word in actionWords)
+        {
+            deviceName = deviceName.Replace(word, "").Trim();
+        }
+        
+        return string.IsNullOrWhiteSpace(deviceName) ? query : deviceName;
     }
 }
 

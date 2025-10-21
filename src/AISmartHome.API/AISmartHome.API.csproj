@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="Aspire.OpenAI" Version="9.5.0-preview.1.25474.7" />
+        <PackageReference Include="Azure.Core" Version="1.47.3" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
         <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="*-*" />
         <PackageReference Include="Microsoft.Agents.AI" Version="*-*" />
@@ -16,6 +17,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AISmartHome.ServiceDefaults\AISmartHome.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\AISmartHome.Console\AISmartHome.Console.csproj" />
     </ItemGroup>
 
 </Project>

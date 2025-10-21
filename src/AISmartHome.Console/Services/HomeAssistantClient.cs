@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using AISmartHome.Console.Models;
 using Console = System.Console;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AISmartHome.Console.Services;
 
@@ -15,10 +17,20 @@ public class HomeAssistantClient : IDisposable
     private readonly string _baseUrl;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public HomeAssistantClient(string baseUrl, string accessToken)
+    public HomeAssistantClient(string baseUrl, string accessToken, bool ignoreSslErrors = true)
     {
         _baseUrl = baseUrl.TrimEnd('/');
-        _httpClient = new HttpClient
+        
+        // Configure HttpClient with SSL certificate validation options
+        var handler = new HttpClientHandler();
+        if (ignoreSslErrors)
+        {
+            handler.ServerCertificateCustomValidationCallback = 
+                (message, cert, chain, sslPolicyErrors) => true;
+            System.Console.WriteLine("[DEBUG] SSL certificate validation disabled for Home Assistant connection");
+        }
+        
+        _httpClient = new HttpClient(handler)
         {
             BaseAddress = new Uri(_baseUrl)
         };

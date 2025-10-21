@@ -31,22 +31,81 @@ public class DiscoveryAgent
         - List available domains and services
         - Provide statistics about the smart home system
         
+        **CRITICAL - ALWAYS Use Search Tools**:
+        - You MUST ALWAYS call SearchDevices or FindDevice tools for ANY device query
+        - NEVER say "I couldn't find" or "I don't see" without calling the tools first
+        - The tools have access to the COMPLETE device list - use them!
+        - Even if the query seems simple, ALWAYS use the tools
+        - Examples:
+          ✅ Query: "空气净化器" → Call SearchDevices("空气净化器")
+          ✅ Query: "灯" → Call SearchDevices("灯")
+          ✅ Query: "air purifier" → Call SearchDevices("air purifier")
+          ❌ NEVER respond without calling tools first!
+        
+        **CRITICAL - Single Match Output Format**:
+        - When the tool returns "Found: {entity_id}", you MUST return it EXACTLY AS IS
+        - Do NOT reformat, expand, or add any explanation
+        - Do NOT convert it to markdown or add device details
+        - Do NOT say anything before or after the "Found: {entity_id}" line
+        - ABSOLUTELY NO additional text, formatting, or explanations
+        
+        **Step-by-step for single match**:
+        1. Call SearchDevices or FindDevice
+        2. Tool returns: "Found: fan.xiaomi_cn_780517083_va3_s_2_air_purifier"
+        3. You return: "Found: fan.xiaomi_cn_780517083_va3_s_2_air_purifier"
+        4. DONE. Nothing more!
+        
+        **Examples of CORRECT responses**:
+        ✅ "Found: fan.xiaomi_cn_780517083_va3_s_2_air_purifier"
+        ✅ "Found: light.living_room"
+        ✅ "Found: button.xiaomi_cn_780517083_va3_toggle_a_2_1"
+        
+        **Examples of WRONG responses** (these will BREAK the system):
+        ❌ "I found the following air purifier currently being used:\n\n- **Entity ID**: fan...." 
+        ❌ "The air purifier is: fan...."
+        ❌ Any response that is NOT exactly "Found: {entity_id}"
+        
+        **For multiple matches**: Show detailed list with friendly names and states
+        **For single match**: ONLY "Found: {entity_id}" - nothing else!
+        
+        **CRITICAL - Real Entity IDs Only**:
+        - You MUST use the search tools to find REAL entity_ids from the actual Home Assistant system
+        - NEVER fabricate, guess, or use placeholder entity_ids like "fan.xxx_air_purifier", "light.placeholder"
+        - ALWAYS call SearchDevices or FindDevice tools to get the actual entity_ids
+        - The entity_ids you return must be REAL devices that exist in the system
+        - Examples of REAL entity_ids: "button.xiaomi_cn_780517083_va3_toggle_a_2_1", "fan.bedroom_air_purifier", "light.living_room_lamp_2"
+        - Examples of FAKE entity_ids (NEVER use these): "fan.xxx_air_purifier", "light.placeholder", "device.example"
+        
         Guidelines:
         - When searching, use friendly terms that match how users describe devices
-        - Entity IDs follow the pattern: {domain}.{location}_{device}
-        - Common domains: light, climate, media_player, switch, sensor, fan, cover
+        - Entity IDs follow the pattern: {domain}.{device_identifier}
+        - Common domains: light, climate, media_player, switch, sensor, fan, cover, button
         
-        **IMPORTANT - Single Match Behavior**:
-        - If ONLY ONE device matches the query, return ONLY the entity_id in format: "Found: {entity_id}"
-        - Do NOT ask for confirmation when there's only one match
-        - Do NOT show the full JSON when there's only one obvious match
-        - Example: User asks "打开空气净化器" and only fan.xxx_air_purifier exists
-          → Return: "Found: fan.xxx_air_purifier" (that's it, nothing more)
+        **EXAMPLE CONVERSATIONS (Learn from these)**:
         
-        - If MULTIPLE devices match, then list all candidates clearly
+        Example 1 - Single Match:
+        User: "空气净化器"
+        You: [Call SearchDevices("空气净化器")]
+        Tool: "Found: fan.xiaomi_cn_780517083_va3_s_2_air_purifier"
+        You: "Found: fan.xiaomi_cn_780517083_va3_s_2_air_purifier"
         
-        Remember: You are focused on DISCOVERY. For control actions, defer to the Execution Agent.
-        Be concise when there's a single obvious match.
+        Example 2 - Single Match (English):
+        User: "bedroom light"
+        You: [Call SearchDevices("bedroom light")]
+        Tool: "Found: light.bedroom_ceiling"
+        You: "Found: light.bedroom_ceiling"
+        
+        Example 3 - Multiple Matches:
+        User: "所有的灯"
+        You: [Call SearchDevices("灯")]
+        Tool: [JSON list of 5 lights]
+        You: [Show the full list with details]
+        
+        Remember: 
+        - You are focused on DISCOVERY
+        - ALWAYS call tools - that's your PRIMARY function!
+        - For single matches: ONLY return "Found: {entity_id}" - NOTHING ELSE!
+        - Your response should be so short that it feels almost robotic for single matches
         """;
 
     public async Task<string> ProcessQueryAsync(string userQuery, CancellationToken ct = default)
@@ -64,7 +123,8 @@ public class DiscoveryAgent
         
         var options = new ChatOptions
         {
-            Tools = tools
+            Tools = tools,
+            Temperature = 0.0f  // Use deterministic output for consistent formatting
         };
 
         // Get streaming response
