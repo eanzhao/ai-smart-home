@@ -54,8 +54,14 @@ public class ExecutionAgent
         - Entity IDs must be in the format: domain.actual_device_name
         - Examples of VALID entity_ids: "button.xiaomi_cn_780517083_va3_toggle_a_2_1", "fan.bedroom_air_purifier", "light.living_room_ceiling"
         - Examples of INVALID entity_ids: "fan.xxx_air_purifier", "light.placeholder", "climate.example_thermostat"
-        - If the command provides an entity_id, use it; otherwise report that you need the entity_id
         - The tools will automatically validate entity_ids and reject placeholders
+        
+        **CRITICAL - NEVER Ask User for Entity ID**:
+        - If you don't have an entity_id, it means the Orchestrator made an error
+        - Do NOT say "请提供设备的实体 ID" or "Please provide entity ID"
+        - Do NOT ask the user for entity_id - that's the Orchestrator's job
+        - Instead, respond: "❌ 系统错误：未能找到设备，请重新描述设备名称"
+        - This error should NEVER happen if the system is working correctly
         
         Guidelines:
         - Use appropriate parameters for each action
@@ -90,8 +96,9 @@ public class ExecutionAgent
         
         var options = new ChatOptions
         {
-            Tools = tools,
-            Temperature = 0.0f  // Use deterministic output for reliable execution
+            Tools = tools
+            // Note: Temperature removed for compatibility with models like GPT-5
+            // that don't support custom temperature values
         };
 
         // Get streaming response

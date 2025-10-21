@@ -123,8 +123,9 @@ public class DiscoveryAgent
         
         var options = new ChatOptions
         {
-            Tools = tools,
-            Temperature = 0.0f  // Use deterministic output for consistent formatting
+            Tools = tools
+            // Note: Temperature removed for compatibility with models like GPT-5
+            // that don't support custom temperature values
         };
 
         // Get streaming response

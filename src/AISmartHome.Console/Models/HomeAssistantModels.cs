@@ -179,3 +179,28 @@ public record ExecutionResult
     public object? ResponseData { get; init; }
 }
 
+/// <summary>
+/// Vision analysis result for camera entities
+/// </summary>
+public record VisionAnalysisResult
+{
+    public string EntityId { get; init; } = string.Empty;
+    public DateTime Timestamp { get; init; }
+    public string Query { get; init; } = string.Empty;
+    public string Analysis { get; init; } = string.Empty;
+    public Dictionary<string, object> Metadata { get; init; } = new();
+    public byte[]? Snapshot { get; init; }
+    public double Confidence { get; init; }
+}
+
+/// <summary>
+/// Vision query request
+/// </summary>
+public record VisionQuery
+{
+    public string CameraEntityId { get; init; } = string.Empty;
+    public string Question { get; init; } = string.Empty;
+    public bool SaveSnapshot { get; init; } = false;
+    public int CacheTtlSeconds { get; init; } = 60;
+}
+

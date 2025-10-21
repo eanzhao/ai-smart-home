@@ -78,6 +78,7 @@ public static class Extensions
                 tracing
                     .AddSource(builder.Environment.ApplicationName)
                     .AddSource("Experimental.Microsoft.Extensions.AI.*")
+                    .AddSource("AISmartHome.HomeAssistant")  // Add our custom ActivitySource
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
                         tracing.Filter = context =>

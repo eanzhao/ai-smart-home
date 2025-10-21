@@ -150,6 +150,19 @@ public class OrchestratorAgent
                         entityId = discoveryResult.Substring(7).Trim();
                         System.Console.WriteLine($"[DEBUG] Extracted entity_id: {entityId}");
                     }
+                    else
+                    {
+                        // Discovery didn't return a single entity_id
+                        System.Console.WriteLine("[DEBUG] Discovery did not return a single entity_id (might be multiple matches or error)");
+                        
+                        // If discovery failed to find a single device, don't proceed to execution
+                        System.Console.WriteLine("[DEBUG] Skipping execution due to missing entity_id");
+                        System.Console.WriteLine($"[DEBUG] Final response length: {responseBuilder.Length} chars");
+                        
+                        var response = responseBuilder.ToString();
+                        _conversationHistory.Add(new ChatMessage(ChatRole.Assistant, response));
+                        return response;
+                    }
                 }
 
                 System.Console.WriteLine("[DEBUG] Routing to ExecutionAgent...");
@@ -208,6 +221,12 @@ public class OrchestratorAgent
             
             User message: "{{userMessage}}"
             
+            **CRITICAL RULES for needs_entity_resolution**:
+            - If the user wants to CONTROL a device (turn on/off, adjust, etc.) → needs_entity_resolution: TRUE
+            - If the user mentions a device by description (not entity_id) → needs_entity_resolution: TRUE
+            - If the user just asks "what devices" without controlling → needs_entity_resolution: FALSE
+            - The ONLY exception is if user provides exact entity_id like "light.living_room"
+            
             Respond in JSON format:
             {
                 "needs_discovery": <boolean>,
@@ -220,9 +239,29 @@ public class OrchestratorAgent
             }
             
             Examples:
-            1. "What lights do I have?" → needs_discovery: true, needs_execution: false
-            2. "Turn on the kitchen light" → needs_discovery: false, needs_execution: true, needs_entity_resolution: true
-            3. "Show me bedroom devices then turn off the lamp" → needs_discovery: true, needs_execution: true
+            1. "What lights do I have?" 
+               → needs_discovery: true, needs_execution: false, needs_entity_resolution: false
+            
+            2. "Turn on the kitchen light" 
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true
+               → entity_query: "kitchen light", execution_command: "turn on the kitchen light"
+            
+            3. "关闭空气净化器"
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true
+               → entity_query: "空气净化器", execution_command: "关闭空气净化器"
+            
+            4. "打开卧室灯"
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true
+               → entity_query: "卧室灯", execution_command: "打开卧室灯"
+            
+            5. "Turn on light.living_room" (user provides entity_id)
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: false
+               → execution_command: "turn on light.living_room"
+            
+            6. "Show me bedroom devices then turn off the lamp"
+               → needs_discovery: true, needs_execution: true, needs_entity_resolution: true
+            
+            **Remember**: ANY control command targeting a device by description needs entity_resolution!
             """;
 
         var analysisMessages = new List<ChatMessage>

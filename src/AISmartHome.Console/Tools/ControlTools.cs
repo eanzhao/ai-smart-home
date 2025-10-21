@@ -123,6 +123,10 @@ public class ControlTools
         }
 
         var result = await _client.CallServiceAsync("light", action, serviceData);
+        
+        // Invalidate cache for this entity after control command
+        _entityRegistry.InvalidateEntity(entityId);
+        
         return FormatExecutionResult(result);
     }
 
@@ -182,6 +186,10 @@ public class ControlTools
         }
 
         var result = await _client.CallServiceAsync("climate", action, serviceData);
+        
+        // Invalidate cache for this entity after control command
+        _entityRegistry.InvalidateEntity(entityId);
+        
         return FormatExecutionResult(result);
     }
 
@@ -218,6 +226,10 @@ public class ControlTools
             serviceData["source"] = source;
 
         var result = await _client.CallServiceAsync("media_player", action, serviceData);
+        
+        // Invalidate cache for this entity after control command
+        _entityRegistry.InvalidateEntity(entityId);
+        
         return FormatExecutionResult(result);
     }
 
@@ -250,6 +262,10 @@ public class ControlTools
         };
 
         var result = await _client.CallServiceAsync(domain, action, serviceData);
+        
+        // Invalidate cache for this entity after control command
+        _entityRegistry.InvalidateEntity(entityId);
+        
         return FormatExecutionResult(result);
     }
 
@@ -269,6 +285,13 @@ public class ControlTools
                 ?? new Dictionary<string, object>();
 
             var result = await _client.CallServiceAsync(domain, service, parameters);
+            
+            // Invalidate cache if entity_id is in parameters
+            if (parameters.TryGetValue("entity_id", out var entityIdObj) && entityIdObj is string entityId)
+            {
+                _entityRegistry.InvalidateEntity(entityId);
+            }
+            
             return FormatExecutionResult(result);
         }
         catch (JsonException ex)
