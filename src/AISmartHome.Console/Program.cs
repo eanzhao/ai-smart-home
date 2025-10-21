@@ -70,16 +70,25 @@ class Program
             .UseFunctionInvocation()
             .Build();
 
+        // Initialize Vision client (for image analysis)
+        var visionModel = configuration["LLM:VisionModel"] ?? llmModel; // Use same model or specify vision-specific
+        var visionChatClient = new ChatClientBuilder(
+            new OpenAI.Chat.ChatClient(visionModel, new ApiKeyCredential(llmApiKey),
+                new OpenAIClientOptions { Endpoint = new Uri(llmEndpoint) }).AsIChatClient())
+            .Build();
+
         // Initialize tools
         var discoveryTools = new DiscoveryTools(entityRegistry, serviceRegistry);
         var controlTools = new ControlTools(haClient, entityRegistry, serviceRegistry);
         var validationTools = new ValidationTools(haClient, entityRegistry);
+        var visionTools = new VisionTools(haClient, visionChatClient, entityRegistry);
 
         // Initialize agents
         var discoveryAgent = new DiscoveryAgent(chatClient, discoveryTools);
         var executionAgent = new ExecutionAgent(chatClient, controlTools);
         var validationAgent = new ValidationAgent(chatClient, validationTools);
-        var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent, validationAgent);
+        var visionAgent = new VisionAgent(chatClient, visionTools, discoveryAgent, entityRegistry);
+        var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent, validationAgent, visionAgent);
 
         System.Console.WriteLine("✅ Multi-Agent system initialized");
         System.Console.WriteLine("\n" + "=".PadRight(60, '='));
@@ -92,10 +101,14 @@ class Program
         }
         System.Console.WriteLine("\nType your command or question (or 'quit' to exit):");
         System.Console.WriteLine("Examples:");
-        System.Console.WriteLine("  - What lights do I have?");
-        System.Console.WriteLine("  - Turn on the living room light");
-        System.Console.WriteLine("  - Set bedroom temperature to 23 degrees");
-        System.Console.WriteLine("  - Show me all climate devices");
+        System.Console.WriteLine("  Device Control:");
+        System.Console.WriteLine("    - What lights do I have?");
+        System.Console.WriteLine("    - Turn on the living room light");
+        System.Console.WriteLine("    - Set bedroom temperature to 23 degrees");
+        System.Console.WriteLine("  Vision Analysis:");
+        System.Console.WriteLine("    - 客厅摄像头看看有没有人");
+        System.Console.WriteLine("    - What's happening at the front door?");
+        System.Console.WriteLine("    - Monitor the garage camera for 5 minutes");
         System.Console.WriteLine("=".PadRight(60, '=') + "\n");
 
         // Main conversation loop

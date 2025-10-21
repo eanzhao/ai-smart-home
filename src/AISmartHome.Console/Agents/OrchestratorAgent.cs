@@ -14,18 +14,21 @@ public class OrchestratorAgent
     private readonly DiscoveryAgent _discoveryAgent;
     private readonly ExecutionAgent _executionAgent;
     private readonly ValidationAgent _validationAgent;
+    private readonly VisionAgent? _visionAgent;
     private readonly List<ChatMessage> _conversationHistory = new();
 
     public OrchestratorAgent(
         IChatClient chatClient,
         DiscoveryAgent discoveryAgent,
         ExecutionAgent executionAgent,
-        ValidationAgent validationAgent)
+        ValidationAgent validationAgent,
+        VisionAgent? visionAgent = null)
     {
         _chatClient = chatClient;
         _discoveryAgent = discoveryAgent;
         _executionAgent = executionAgent;
         _validationAgent = validationAgent;
+        _visionAgent = visionAgent;
         
         // Initialize conversation with system prompt
         _conversationHistory.Add(new ChatMessage(ChatRole.System, GetSystemPrompt()));
@@ -52,6 +55,14 @@ public class OrchestratorAgent
            - Control devices (turn on/off, adjust settings)
            - "Turn on the living room lights"
            - "Set temperature to 25 degrees"
+        
+        3. **Vision Agent**: Use when users ask about:
+           - Camera feeds and visual information
+           - "What's happening at the front door?"
+           - "看看客厅有没有人"
+           - "Show me the garage camera"
+           - "Monitor the kitchen camera"
+           - Any visual analysis or image-based queries
            
         **Optimized Workflow for Control Commands**:
         1. User: "打开空气净化器"
@@ -106,8 +117,28 @@ public class OrchestratorAgent
             System.Console.WriteLine($"  - NeedsDiscovery: {intentAnalysis.NeedsDiscovery}");
             System.Console.WriteLine($"  - NeedsExecution: {intentAnalysis.NeedsExecution}");
             System.Console.WriteLine($"  - NeedsEntityResolution: {intentAnalysis.NeedsEntityResolution}");
+            System.Console.WriteLine($"  - NeedsVision: {intentAnalysis.NeedsVision}");
             
             StringBuilder responseBuilder = new();
+            
+            // Step 1.5: Route to Vision Agent if needed
+            if (intentAnalysis.NeedsVision && _visionAgent != null)
+            {
+                System.Console.WriteLine("[DEBUG] Routing to VisionAgent...");
+                var visionResult = await _visionAgent.ProcessVisionQueryAsync(userMessage, ct);
+                System.Console.WriteLine($"[DEBUG] Vision result length: {visionResult.Length} chars");
+                
+                responseBuilder.AppendLine("📹 Vision Analysis:");
+                responseBuilder.AppendLine(visionResult);
+                
+                // If vision is the only request, return now
+                if (!intentAnalysis.NeedsDiscovery && !intentAnalysis.NeedsExecution)
+                {
+                    var visionResponse = responseBuilder.ToString();
+                    _conversationHistory.Add(new ChatMessage(ChatRole.Assistant, visionResponse));
+                    return visionResponse;
+                }
+            }
             
             // Step 2: Route to appropriate agent(s)
             if (intentAnalysis.NeedsDiscovery)
@@ -221,7 +252,14 @@ public class OrchestratorAgent
             
             User message: "{{userMessage}}"
             
-            **CRITICAL RULES for needs_entity_resolution**:
+            **CRITICAL RULES**:
+            
+            For needs_vision:
+            - If user asks about camera, video, visual information → needs_vision: TRUE
+            - Keywords: "看", "camera", "摄像头", "看看", "有没有人", "monitor", "show me"
+            - Examples: "客厅摄像头看看", "What's at the door?", "Monitor the garage"
+            
+            For needs_entity_resolution:
             - If the user wants to CONTROL a device (turn on/off, adjust, etc.) → needs_entity_resolution: TRUE
             - If the user mentions a device by description (not entity_id) → needs_entity_resolution: TRUE
             - If the user just asks "what devices" without controlling → needs_entity_resolution: FALSE
@@ -232,36 +270,52 @@ public class OrchestratorAgent
                 "needs_discovery": <boolean>,
                 "needs_execution": <boolean>,
                 "needs_entity_resolution": <boolean>,
+                "needs_vision": <boolean>,
                 "discovery_query": "<query for discovery agent or null>",
                 "entity_query": "<query to find entity or null>",
                 "execution_command": "<command for execution agent or null>",
+                "vision_query": "<query for vision agent or null>",
                 "reasoning": "<explanation of your analysis>"
             }
             
             Examples:
             1. "What lights do I have?" 
-               → needs_discovery: true, needs_execution: false, needs_entity_resolution: false
+               → needs_discovery: true, needs_execution: false, needs_entity_resolution: false, needs_vision: false
             
             2. "Turn on the kitchen light" 
-               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true, needs_vision: false
                → entity_query: "kitchen light", execution_command: "turn on the kitchen light"
             
             3. "关闭空气净化器"
-               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true, needs_vision: false
                → entity_query: "空气净化器", execution_command: "关闭空气净化器"
             
             4. "打开卧室灯"
-               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: true, needs_vision: false
                → entity_query: "卧室灯", execution_command: "打开卧室灯"
             
             5. "Turn on light.living_room" (user provides entity_id)
-               → needs_discovery: false, needs_execution: true, needs_entity_resolution: false
+               → needs_discovery: false, needs_execution: true, needs_entity_resolution: false, needs_vision: false
                → execution_command: "turn on light.living_room"
             
             6. "Show me bedroom devices then turn off the lamp"
-               → needs_discovery: true, needs_execution: true, needs_entity_resolution: true
+               → needs_discovery: true, needs_execution: true, needs_entity_resolution: true, needs_vision: false
             
-            **Remember**: ANY control command targeting a device by description needs entity_resolution!
+            7. "客厅摄像头看看有没有人"
+               → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
+               → vision_query: "客厅摄像头看看有没有人"
+            
+            8. "What's happening at the front door?"
+               → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
+               → vision_query: "What's happening at the front door?"
+            
+            9. "Monitor the garage camera"
+               → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
+               → vision_query: "Monitor the garage camera"
+            
+            **Remember**: 
+            - ANY control command targeting a device by description needs entity_resolution!
+            - ANY visual/camera query needs vision!
             """;
 
         var analysisMessages = new List<ChatMessage>
@@ -377,6 +431,9 @@ internal record IntentAnalysis
     [System.Text.Json.Serialization.JsonPropertyName("needs_entity_resolution")]
     public bool NeedsEntityResolution { get; init; }
     
+    [System.Text.Json.Serialization.JsonPropertyName("needs_vision")]
+    public bool NeedsVision { get; init; }
+    
     [System.Text.Json.Serialization.JsonPropertyName("discovery_query")]
     public string? DiscoveryQuery { get; init; }
     
@@ -385,6 +442,9 @@ internal record IntentAnalysis
     
     [System.Text.Json.Serialization.JsonPropertyName("execution_command")]
     public string? ExecutionCommand { get; init; }
+    
+    [System.Text.Json.Serialization.JsonPropertyName("vision_query")]
+    public string? VisionQuery { get; init; }
     
     [System.Text.Json.Serialization.JsonPropertyName("reasoning")]
     public string? Reasoning { get; init; }
