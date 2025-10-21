@@ -1,0 +1,186 @@
+﻿using System.ClientModel;
+using AISmartHome.Console.Agents;
+using AISmartHome.Console.Services;
+using AISmartHome.Console.Tools;
+using Azure.AI.OpenAI;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
+using OpenAI;
+
+namespace AISmartHome.Console;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // 🌌 HyperEcho awakens...
+        PrintBanner();
+
+        // Load configuration
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddEnvironmentVariables()
+            .Build();
+
+        // Get configuration values
+        var haBaseUrl = configuration["HomeAssistant:BaseUrl"] 
+            ?? throw new InvalidOperationException("HomeAssistant:BaseUrl not configured");
+        var haToken = configuration["HomeAssistant:AccessToken"] 
+            ?? throw new InvalidOperationException("HomeAssistant:AccessToken not configured");
+        var llmApiKey = configuration["LLM:ApiKey"] 
+            ?? throw new InvalidOperationException("LLM:ApiKey not configured");
+        var llmModel = configuration["LLM:Model"] ?? "gpt-4o";
+        var llmEndpoint = configuration["LLM:Endpoint"] ?? "https://models.github.ai/inference";
+
+        System.Console.WriteLine("🔗 Connecting to Home Assistant...");
+
+        // Initialize Home Assistant client
+        var haClient = new HomeAssistantClient(haBaseUrl, haToken);
+        
+        // Test connection
+        var isConnected = await haClient.PingAsync();
+        if (!isConnected)
+        {
+            System.Console.WriteLine("❌ Failed to connect to Home Assistant. Check your configuration.");
+            return;
+        }
+        System.Console.WriteLine($"✅ Connected to Home Assistant at {haBaseUrl}");
+
+        // Initialize registries
+        var entityRegistry = new EntityRegistry(haClient);
+        var serviceRegistry = new ServiceRegistry(haClient);
+
+        System.Console.WriteLine("📋 Loading Home Assistant state...");
+        await entityRegistry.RefreshAsync();
+        await serviceRegistry.RefreshAsync();
+
+        var stats = await entityRegistry.GetDomainStatsAsync();
+        var serviceCount = await serviceRegistry.GetServiceCountAsync();
+        
+        System.Console.WriteLine($"✅ Loaded {stats.Values.Sum()} entities across {stats.Count} domains");
+        System.Console.WriteLine($"✅ Loaded {serviceCount} services");
+
+        // Initialize OpenAI client
+        System.Console.WriteLine("\n🤖 Initializing AI agents...");
+        var chatClient = new ChatClientBuilder(
+            new OpenAI.Chat.ChatClient(llmModel, new ApiKeyCredential(llmApiKey),
+                new OpenAIClientOptions { Endpoint = new Uri(llmEndpoint) }).AsIChatClient())
+            .UseFunctionInvocation()
+            .Build();
+
+        // Initialize tools
+        var discoveryTools = new DiscoveryTools(entityRegistry, serviceRegistry);
+        var controlTools = new ControlTools(haClient, entityRegistry, serviceRegistry);
+
+        // Initialize agents
+        var discoveryAgent = new DiscoveryAgent(chatClient, discoveryTools);
+        var executionAgent = new ExecutionAgent(chatClient, controlTools);
+        var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent);
+
+        System.Console.WriteLine("✅ Multi-Agent system initialized");
+        System.Console.WriteLine("\n" + "=".PadRight(60, '='));
+        System.Console.WriteLine("🏠 Home Assistant AI Control System");
+        System.Console.WriteLine("=".PadRight(60, '='));
+        System.Console.WriteLine("\nAvailable domains:");
+        foreach (var (domain, count) in stats.OrderByDescending(x => x.Value).Take(10))
+        {
+            System.Console.WriteLine($"  • {domain}: {count} entities");
+        }
+        System.Console.WriteLine("\nType your command or question (or 'quit' to exit):");
+        System.Console.WriteLine("Examples:");
+        System.Console.WriteLine("  - What lights do I have?");
+        System.Console.WriteLine("  - Turn on the living room light");
+        System.Console.WriteLine("  - Set bedroom temperature to 23 degrees");
+        System.Console.WriteLine("  - Show me all climate devices");
+        System.Console.WriteLine("=".PadRight(60, '=') + "\n");
+
+        // Main conversation loop
+        while (true)
+        {
+            System.Console.Write("\n🗣️  You: ");
+            var input = System.Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(input))
+                continue;
+
+            if (input.Equals("quit", StringComparison.OrdinalIgnoreCase) ||
+                input.Equals("exit", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Console.WriteLine("\n👋 Goodbye!");
+                break;
+            }
+
+            if (input.Equals("refresh", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Console.WriteLine("🔄 Refreshing Home Assistant state...");
+                await entityRegistry.RefreshAsync();
+                await serviceRegistry.RefreshAsync();
+                System.Console.WriteLine("✅ State refreshed");
+                continue;
+            }
+
+            if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+            {
+                orchestrator.ClearHistory();
+                System.Console.WriteLine("🧹 Conversation history cleared");
+                continue;
+            }
+
+            try
+            {
+                System.Console.WriteLine("\n🤔 Processing...\n");
+                System.Console.WriteLine($"[DEBUG] User input: {input}");
+                System.Console.WriteLine("[DEBUG] Calling orchestrator.ProcessMessageAsync...");
+                
+                var response = await orchestrator.ProcessMessageAsync(input);
+                
+                System.Console.WriteLine($"\n[DEBUG] Orchestrator returned response of length: {response?.Length ?? 0}");
+                System.Console.WriteLine("\n🤖 Assistant:");
+                
+                if (string.IsNullOrWhiteSpace(response))
+                {
+                    System.Console.WriteLine("(No response generated - check DEBUG logs above)");
+                }
+                else
+                {
+                    System.Console.WriteLine(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"❌ Error: {ex.Message}");
+                System.Console.WriteLine($"   Type: {ex.GetType().Name}");
+                System.Console.WriteLine($"   Stack Trace:");
+                System.Console.WriteLine(ex.StackTrace);
+                
+                if (ex.InnerException != null)
+                {
+                    System.Console.WriteLine($"\n   Inner Exception: {ex.InnerException.Message}");
+                }
+            }
+        }
+
+        // Cleanup
+        haClient.Dispose();
+    }
+
+    private static void PrintBanner()
+    {
+        var banner = """
+            
+            ╔═══════════════════════════════════════════════════════════╗
+            ║                                                           ║
+            ║        🌌 HyperEcho AI Smart Home Control System 🌌       ║
+            ║                                                           ║
+            ║   语言的震动体 × 智能家居的共振                              ║
+            ║   Language as vibration × Smart Home resonance            ║
+            ║                                                           ║
+            ╚═══════════════════════════════════════════════════════════╝
+            
+            """;
+        
+        System.Console.WriteLine(banner);
+    }
+}

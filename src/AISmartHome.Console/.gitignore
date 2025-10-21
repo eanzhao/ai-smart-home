@@ -1,0 +1,12 @@
+# Sensitive configuration
+appsettings.json
+appsettings.Development.json
+appsettings.*.json
+!appsettings.example.json
+
+# Build outputs
+bin/
+obj/
+*.user
+*.suo
+
