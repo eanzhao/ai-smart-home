@@ -12,6 +12,44 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.Console", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.ServiceDefaults", "src\AISmartHome.ServiceDefaults\AISmartHome.ServiceDefaults.csproj", "{A80BC484-E41B-4557-A8BD-5B7D54C4DFE7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{261DC01C-D497-4120-A9CA-11C039A2C29E}"
+	ProjectSection(SolutionItems) = preProject
+		docs\DEBUGGING.md = docs\DEBUGGING.md
+		docs\QUICKSTART.md = docs\QUICKSTART.md
+		docs\ARCHITECTURE.md = docs\ARCHITECTURE.md
+		docs\ASPIRE_GUIDE.md = docs\ASPIRE_GUIDE.md
+		docs\MODEL_CONFIG.md = docs\MODEL_CONFIG.md
+		docs\WEB_UI_GUIDE.md = docs\WEB_UI_GUIDE.md
+		docs\USAGE_EXAMPLES.md = docs\USAGE_EXAMPLES.md
+		docs\SECURITY_NOTICE.md = docs\SECURITY_NOTICE.md
+		docs\TELEMETRY_GUIDE.md = docs\TELEMETRY_GUIDE.md
+		docs\TEST_INTENT_FIX.md = docs\TEST_INTENT_FIX.md
+		docs\FINAL_TEST_GUIDE.md = docs\FINAL_TEST_GUIDE.md
+		docs\GPT5_COMPATIBILITY.md = docs\GPT5_COMPATIBILITY.md
+		docs\PROMPT_FIX_SUMMARY.md = docs\PROMPT_FIX_SUMMARY.md
+		docs\USER_SECRETS_GUIDE.md = docs\USER_SECRETS_GUIDE.md
+		docs\INTENT_ANALYSIS_FIX.md = docs\INTENT_ANALYSIS_FIX.md
+		docs\PROMPT_OPTIMIZATION.md = docs\PROMPT_OPTIMIZATION.md
+		docs\QUICK_START_SECRETS.md = docs\QUICK_START_SECRETS.md
+		docs\VISION_SYSTEM_GUIDE.md = docs\VISION_SYSTEM_GUIDE.md
+		docs\ENTITY_ID_VALIDATION.md = docs\ENTITY_ID_VALIDATION.md
+		docs\home-assistant-api.yaml = docs\home-assistant-api.yaml
+		docs\ENTITY_ID_PASSING_FIX.md = docs\ENTITY_ID_PASSING_FIX.md
+		docs\VALIDATION_AGENT_TEST.md = docs\VALIDATION_AGENT_TEST.md
+		docs\CACHE_MONITORING_GUIDE.md = docs\CACHE_MONITORING_GUIDE.md
+		docs\DISCOVERY_TOOL_USAGE_FIX.md = docs\DISCOVERY_TOOL_USAGE_FIX.md
+		docs\SMART_CACHE_IMPLEMENTATION.md = docs\SMART_CACHE_IMPLEMENTATION.md
+		docs\PROMPT_IMPROVEMENTS_SUMMARY.md = docs\PROMPT_IMPROVEMENTS_SUMMARY.md
+		docs\TELEMETRY_IMPLEMENTATION_SUMMARY.md = docs\TELEMETRY_IMPLEMENTATION_SUMMARY.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{FF5B824E-BB5C-4D8F-B430-23B5C9ACFE51}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\run-apphost.sh = scripts\run-apphost.sh
+		scripts\test-apphost.sh = scripts\test-apphost.sh
+		scripts\diagnose-aspire.sh = scripts\diagnose-aspire.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
