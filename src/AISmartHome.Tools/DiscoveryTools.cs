@@ -28,41 +28,71 @@ public class DiscoveryTools
         [Description("Optional domain filter, e.g. 'light', 'climate', 'sensor'")]
         string? domain = null)
     {
-        System.Console.WriteLine($"[TOOL] SearchDevices called: query='{query}', domain='{domain}'");
-        var entities = await _statesRegistry.SearchEntitiesAsync(query);
+        System.Console.WriteLine($"\n[TOOL] ===== SearchDevices START =====");
+        System.Console.WriteLine($"[TOOL] Query: '{query}', Domain: '{domain ?? "none"}'");
         
-        if (!string.IsNullOrEmpty(domain))
+        try
         {
-            entities = entities
-                .Where(e => e.GetDomain().Equals(domain, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var entities = await _statesRegistry.SearchEntitiesAsync(query);
+            System.Console.WriteLine($"[TOOL] SearchEntitiesAsync returned {entities.Count} entities");
+            
+            if (!string.IsNullOrEmpty(domain))
+            {
+                var beforeFilter = entities.Count;
+                entities = entities
+                    .Where(e => e.GetDomain().Equals(domain, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                System.Console.WriteLine($"[TOOL] After domain filter '{domain}': {beforeFilter} → {entities.Count} entities");
+            }
+
+            if (entities.Count == 0)
+            {
+                var result = $"No devices found matching '{query}'.";
+                System.Console.WriteLine($"[TOOL] Result: {result}");
+                System.Console.WriteLine("[TOOL] ===== SearchDevices END (no match) =====\n");
+                return result;
+            }
+
+            // If only one match, return simple format for immediate execution
+            if (entities.Count == 1)
+            {
+                var single = entities[0];
+                var result = $"Found: {single.EntityId}";
+                System.Console.WriteLine($"[TOOL] Single match found!");
+                System.Console.WriteLine($"[TOOL] Entity: {single.EntityId}");
+                System.Console.WriteLine($"[TOOL] Friendly name: {single.GetFriendlyName()}");
+                System.Console.WriteLine($"[TOOL] Returning: {result}");
+                System.Console.WriteLine("[TOOL] ===== SearchDevices END (single) =====\n");
+                return result;
+            }
+
+            // Multiple matches - return detailed list
+            System.Console.WriteLine($"[TOOL] Multiple matches: {entities.Count} entities");
+            var results = entities.Take(10).Select(e => new
+            {
+                entity_id = e.EntityId,
+                friendly_name = e.GetFriendlyName(),
+                state = e.State,
+                domain = e.GetDomain()
+            }).ToList();
+            
+            var json = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+            
+            System.Console.WriteLine($"[TOOL] Returning JSON with {results.Count} entities");
+            System.Console.WriteLine($"[TOOL] JSON preview: {json.Substring(0, Math.Min(300, json.Length))}...");
+            System.Console.WriteLine("[TOOL] ===== SearchDevices END (multiple) =====\n");
+            return json;
         }
-
-        if (entities.Count == 0)
-            return $"No devices found matching '{query}'.";
-
-        // If only one match, return simple format for immediate execution
-        if (entities.Count == 1)
+        catch (Exception ex)
         {
-            var single = entities[0];
-            System.Console.WriteLine($"[TOOL] SearchDevices found single match: {single.EntityId}");
-            return $"Found: {single.EntityId}";
+            System.Console.WriteLine($"[TOOL] ERROR in SearchDevices: {ex.Message}");
+            System.Console.WriteLine($"[TOOL] Stack trace: {ex.StackTrace}");
+            System.Console.WriteLine("[TOOL] ===== SearchDevices END (error) =====\n");
+            throw;
         }
-
-        // Multiple matches - return detailed list
-        System.Console.WriteLine($"[TOOL] SearchDevices found {entities.Count} matches");
-        var results = entities.Take(10).Select(e => new
-        {
-            entity_id = e.EntityId,
-            friendly_name = e.GetFriendlyName(),
-            state = e.State,
-            domain = e.GetDomain()
-        });
-
-        return System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions 
-        { 
-            WriteIndented = true 
-        });
     }
 
     [Description("Get detailed information about a specific device by its entity_id. " +

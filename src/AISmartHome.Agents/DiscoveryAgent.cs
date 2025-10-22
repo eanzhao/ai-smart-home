@@ -132,20 +132,39 @@ public class DiscoveryAgent
         var responseBuilder = new StringBuilder();
         int updateCount = 0;
         
-        await foreach (var update in _chatClient.GetStreamingResponseAsync(messages, options, ct))
+        try
         {
-            updateCount++;
-            responseBuilder.Append(update);
-            if (updateCount <= 5)
+            await foreach (var update in _chatClient.GetStreamingResponseAsync(messages, options, ct))
             {
-                System.Console.WriteLine($"[DEBUG] DiscoveryAgent stream #{updateCount}: {update}");
+                updateCount++;
+                responseBuilder.Append(update);
+                if (updateCount <= 10)  // Increased from 5 to 10 for better debugging
+                {
+                    System.Console.WriteLine($"[DEBUG] DiscoveryAgent stream #{updateCount}: '{update}'");
+                }
+            }
+            
+            System.Console.WriteLine($"[DEBUG] DiscoveryAgent received {updateCount} total stream updates");
+            System.Console.WriteLine($"[DEBUG] Total response length: {responseBuilder.Length} chars");
+            
+            var result = responseBuilder.ToString().Trim();
+            if (!string.IsNullOrEmpty(result))
+            {
+                System.Console.WriteLine($"[DEBUG] Final result: {result.Substring(0, Math.Min(500, result.Length))}");
+                return result;
+            }
+            else
+            {
+                System.Console.WriteLine("[DEBUG] WARNING: Empty result after streaming");
+                return "No response generated. Tools may have been called but produced no output.";
             }
         }
-        
-        System.Console.WriteLine($"[DEBUG] DiscoveryAgent received {updateCount} stream updates");
-        System.Console.WriteLine($"[DEBUG] Total response length: {responseBuilder.Length} chars");
-        
-        return responseBuilder.Length > 0 ? responseBuilder.ToString() : "No response generated.";
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"[ERROR] DiscoveryAgent exception: {ex.Message}");
+            System.Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+            throw;
+        }
     }
 
     private List<AITool> GetTools()
