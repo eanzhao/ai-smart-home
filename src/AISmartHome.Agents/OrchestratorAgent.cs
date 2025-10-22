@@ -254,6 +254,18 @@ public class OrchestratorAgent
             
             **CRITICAL RULES**:
             
+            For needs_discovery:
+            - If user asks "what devices do I have?" "show me" "list" "which" "有哪些" "查看" → needs_discovery: TRUE
+            - Keywords: "what", "which", "show", "list", "find", "有哪些", "哪些", "查看", "显示"
+            - User wants to FIND or LIST devices (not control them) → needs_discovery: TRUE
+            - Examples: "What lights do I have?", "我有哪些灯", "Show me all sensors"
+            - If ONLY asking about devices WITHOUT controlling → needs_discovery: TRUE
+            
+            For needs_execution:
+            - If user wants to CONTROL/ACT on a device (turn on/off, set, adjust) → needs_execution: TRUE
+            - Keywords: "turn on/off", "set", "adjust", "打开", "关闭", "设置", "调节"
+            - User wants to CHANGE device state → needs_execution: TRUE
+            
             For needs_vision:
             - If user asks about camera, video, visual information → needs_vision: TRUE
             - Keywords: "看", "camera", "摄像头", "看看", "有没有人", "monitor", "show me"
@@ -281,41 +293,52 @@ public class OrchestratorAgent
             Examples:
             1. "What lights do I have?" 
                → needs_discovery: true, needs_execution: false, needs_entity_resolution: false, needs_vision: false
+               → discovery_query: "What lights do I have?"
             
-            2. "Turn on the kitchen light" 
+            2. "我有哪些灯" (Chinese: What lights do I have?)
+               → needs_discovery: true, needs_execution: false, needs_entity_resolution: false, needs_vision: false
+               → discovery_query: "我有哪些灯"
+            
+            3. "Show me all climate devices"
+               → needs_discovery: true, needs_execution: false, needs_entity_resolution: false, needs_vision: false
+               → discovery_query: "Show me all climate devices"
+            
+            4. "Turn on the kitchen light" 
                → needs_discovery: false, needs_execution: true, needs_entity_resolution: true, needs_vision: false
                → entity_query: "kitchen light", execution_command: "turn on the kitchen light"
             
-            3. "关闭空气净化器"
+            5. "关闭空气净化器"
                → needs_discovery: false, needs_execution: true, needs_entity_resolution: true, needs_vision: false
                → entity_query: "空气净化器", execution_command: "关闭空气净化器"
             
-            4. "打开卧室灯"
+            6. "打开卧室灯"
                → needs_discovery: false, needs_execution: true, needs_entity_resolution: true, needs_vision: false
                → entity_query: "卧室灯", execution_command: "打开卧室灯"
             
-            5. "Turn on light.living_room" (user provides entity_id)
+            7. "Turn on light.living_room" (user provides entity_id)
                → needs_discovery: false, needs_execution: true, needs_entity_resolution: false, needs_vision: false
                → execution_command: "turn on light.living_room"
             
-            6. "Show me bedroom devices then turn off the lamp"
+            8. "Show me bedroom devices then turn off the lamp"
                → needs_discovery: true, needs_execution: true, needs_entity_resolution: true, needs_vision: false
             
-            7. "客厅摄像头看看有没有人"
+            9. "客厅摄像头看看有没有人"
                → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
                → vision_query: "客厅摄像头看看有没有人"
             
-            8. "What's happening at the front door?"
-               → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
-               → vision_query: "What's happening at the front door?"
+            10. "What's happening at the front door?"
+                → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
+                → vision_query: "What's happening at the front door?"
             
-            9. "Monitor the garage camera"
-               → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
-               → vision_query: "Monitor the garage camera"
+            11. "Monitor the garage camera"
+                → needs_discovery: false, needs_execution: false, needs_entity_resolution: false, needs_vision: true
+                → vision_query: "Monitor the garage camera"
             
             **Remember**: 
-            - ANY control command targeting a device by description needs entity_resolution!
-            - ANY visual/camera query needs vision!
+            - ANY query asking "what/which/how many devices" → needs_discovery: TRUE!
+            - ANY query with "有哪些" "哪些" "查看" "显示" → needs_discovery: TRUE!
+            - ANY control command targeting a device by description → needs_entity_resolution: TRUE!
+            - ANY visual/camera query → needs_vision: TRUE!
             """;
 
         var analysisMessages = new List<ChatMessage>
