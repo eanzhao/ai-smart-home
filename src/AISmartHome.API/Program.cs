@@ -1,12 +1,14 @@
 using System.ClientModel;
-using AISmartHome.Console.Agents;
-using AISmartHome.Console.Services;
-using AISmartHome.Console.Tools;
+using AISmartHome.Agents;
 using Microsoft.Extensions.AI;
 using OpenAI;
 using Azure.AI.OpenAI;
 using System.Text;
 using System.Text.Json;
+using Aevatar.HomeAssistantClient;
+using AISmartHome.Tools;
+using AISmartHome.Tools.Extensions;
+using Microsoft.Kiota.Http.HttpClientLibrary;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,10 +36,28 @@ var llmApiKey = builder.Configuration["LLM:ApiKey"]
 var llmModel = builder.Configuration["LLM:Model"] ?? "gpt-4o-mini";
 var llmEndpoint = builder.Configuration["LLM:Endpoint"] ?? "https://api.openai.com/v1";
 
-// Register services
-builder.Services.AddSingleton(sp => new HomeAssistantClient(haBaseUrl, haAccessToken, ignoreSslErrors: true));
-builder.Services.AddSingleton(sp => new EntityRegistry(sp.GetRequiredService<HomeAssistantClient>()));
-builder.Services.AddSingleton(sp => new ServiceRegistry(sp.GetRequiredService<HomeAssistantClient>()));
+// Register Home Assistant client
+builder.Services.AddSingleton<HomeAssistantClient>(sp =>
+{
+    var haBaseUrl = sp.GetRequiredService<IConfiguration>()["HomeAssistant:BaseUrl"] 
+        ?? throw new InvalidOperationException("HomeAssistant:BaseUrl not configured");
+    var haAccessToken = sp.GetRequiredService<IConfiguration>()["HomeAssistant:AccessToken"] 
+        ?? throw new InvalidOperationException("HomeAssistant:AccessToken not configured");
+        
+    var httpClientHandler = new HttpClientHandler();
+    httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
+    var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(haBaseUrl) };
+    httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", haAccessToken);
+    
+    var authProvider = new Microsoft.Kiota.Abstractions.Authentication.AnonymousAuthenticationProvider();
+    var requestAdapter = new HttpClientRequestAdapter(authProvider, httpClient: httpClient);
+    requestAdapter.BaseUrl = haBaseUrl;
+    return new HomeAssistantClient(requestAdapter);
+});
+
+// Register registries
+builder.Services.AddSingleton<StatesRegistry>();
+builder.Services.AddSingleton<ServiceRegistry>();
 
 // Register tools
 builder.Services.AddSingleton<DiscoveryTools>();
@@ -64,11 +84,11 @@ builder.Services.AddSingleton<OrchestratorAgent>();
 var app = builder.Build();
 
 // Initialize registries
-var entityRegistry = app.Services.GetRequiredService<EntityRegistry>();
+var statesRegistry = app.Services.GetRequiredService<StatesRegistry>();
 var serviceRegistry = app.Services.GetRequiredService<ServiceRegistry>();
 
 Console.WriteLine("🔄 Initializing Home Assistant connection...");
-await entityRegistry.RefreshAsync();
+await statesRegistry.RefreshAsync();
 await serviceRegistry.RefreshAsync();
 Console.WriteLine("✅ Initialization complete!");
 
@@ -115,10 +135,10 @@ app.MapPost("/agent/chat", async (HttpContext context, OrchestratorAgent orchest
 });
 
 // Get device stats
-app.MapGet("/agent/stats", async (EntityRegistry entityRegistry) =>
+app.MapGet("/agent/stats", async (StatesRegistry statesRegistry) =>
 {
-    var entities = await entityRegistry.GetAllEntitiesAsync();
-    var stats = entities.GroupBy(e => e.Domain)
+    var entities = await statesRegistry.GetAllEntitiesAsync();
+    var stats = entities.GroupBy(e => e.GetDomain())
         .Select(g => new { domain = g.Key, count = g.Count() })
         .OrderByDescending(x => x.count)
         .Take(10)
@@ -132,13 +152,13 @@ app.MapGet("/agent/stats", async (EntityRegistry entityRegistry) =>
 });
 
 // List devices
-app.MapGet("/agent/devices", async (EntityRegistry entityRegistry, string? domain = null) =>
+app.MapGet("/agent/devices", async (StatesRegistry statesRegistry, string? domain = null) =>
 {
-    var entities = await entityRegistry.GetAllEntitiesAsync();
+    var entities = await statesRegistry.GetAllEntitiesAsync();
     
     if (!string.IsNullOrEmpty(domain))
     {
-        entities = entities.Where(e => e.Domain.Equals(domain, StringComparison.OrdinalIgnoreCase)).ToList();
+        entities = entities.Where(e => e.GetDomain().Equals(domain, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
     var devices = entities.Select(e => new
@@ -146,7 +166,7 @@ app.MapGet("/agent/devices", async (EntityRegistry entityRegistry, string? domai
         entity_id = e.EntityId,
         friendly_name = e.GetFriendlyName(),
         state = e.State,
-        domain = e.Domain
+        domain = e.GetDomain()
     }).ToList();
 
     return Results.Ok(devices);

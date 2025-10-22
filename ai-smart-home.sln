@@ -12,6 +12,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.Console", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.ServiceDefaults", "src\AISmartHome.ServiceDefaults\AISmartHome.ServiceDefaults.csproj", "{A80BC484-E41B-4557-A8BD-5B7D54C4DFE7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aevatar.HomeAssistantClient", "src\Aevatar.HomeAssistantClient\Aevatar.HomeAssistantClient.csproj", "{AF9E3525-8EFB-4C5D-872E-F46750A27DAB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution-items", "solution-items", "{8D65AEDC-F6ED-47AB-9CE6-E1132C060EB6}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Packages.props = Directory.Packages.props
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.Tools", "src\AISmartHome.Tools\AISmartHome.Tools.csproj", "{7FACDEB6-F5D8-4825-A5D6-A4D92BC0A037}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.Agents", "src\AISmartHome.Agents\AISmartHome.Agents.csproj", "{AE18D578-F573-40B9-AA91-0A7F5D2C5403}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +34,9 @@ Global
 		{C748B37B-A108-4A9B-8BAF-82B86A16A5F4} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
 		{E2D39472-D128-4C25-A399-3162C2A20C4A} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
 		{A80BC484-E41B-4557-A8BD-5B7D54C4DFE7} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
+		{AF9E3525-8EFB-4C5D-872E-F46750A27DAB} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
+		{7FACDEB6-F5D8-4825-A5D6-A4D92BC0A037} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
+		{AE18D578-F573-40B9-AA91-0A7F5D2C5403} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{44CB8FF6-F4CB-436F-A759-4355BF68296A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -40,5 +55,17 @@ Global
 		{A80BC484-E41B-4557-A8BD-5B7D54C4DFE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A80BC484-E41B-4557-A8BD-5B7D54C4DFE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A80BC484-E41B-4557-A8BD-5B7D54C4DFE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF9E3525-8EFB-4C5D-872E-F46750A27DAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF9E3525-8EFB-4C5D-872E-F46750A27DAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF9E3525-8EFB-4C5D-872E-F46750A27DAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF9E3525-8EFB-4C5D-872E-F46750A27DAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FACDEB6-F5D8-4825-A5D6-A4D92BC0A037}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FACDEB6-F5D8-4825-A5D6-A4D92BC0A037}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FACDEB6-F5D8-4825-A5D6-A4D92BC0A037}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FACDEB6-F5D8-4825-A5D6-A4D92BC0A037}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE18D578-F573-40B9-AA91-0A7F5D2C5403}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE18D578-F573-40B9-AA91-0A7F5D2C5403}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE18D578-F573-40B9-AA91-0A7F5D2C5403}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE18D578-F573-40B9-AA91-0A7F5D2C5403}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
