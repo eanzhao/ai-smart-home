@@ -1,0 +1,39 @@
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.5.1"/>
+        <PackageVersion Include="Aspire.Hosting.GitHub.Models" Version="9.5.1-preview.1.25502.11" />
+        <PackageVersion Include="Aspire.OpenAI" Version="9.5.0-preview.1.25474.7" />
+
+        <PackageVersion Include="Azure.Core" Version="1.47.3" />
+        <PackageVersion Include="Azure.AI.OpenAI" Version="2.3.0-beta.2" />
+
+        <PackageVersion Include="Microsoft.Agents.AI" Version="1.0.0-preview.251016.1" />
+        <PackageVersion Include="Microsoft.Agents.AI.Hosting" Version="1.0.0-preview.251016.1" />
+        <PackageVersion Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-preview.251016.1" />
+        <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+        <PackageVersion Include="Microsoft.Extensions.AI" Version="9.10.1" />
+        <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.10.1-preview.1.25521.4" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.0" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
+        <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+        <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.0" />
+        <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.9.0" />
+        <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.1" />
+        <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.5.0" />
+        <PackageVersion Include="Microsoft.Kiota.Bundle" Version="1.20.1" />
+  
+        <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
+        <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
+        <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
+        <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
+        <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
+
+        <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
+        <PackageVersion Include="System.Text.Json" Version="9.0.5" />
+    </ItemGroup>
+</Project>

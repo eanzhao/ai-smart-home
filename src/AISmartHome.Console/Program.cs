@@ -1,10 +1,12 @@
 ﻿using System.ClientModel;
-using AISmartHome.Console.Agents;
-using AISmartHome.Console.Services;
-using AISmartHome.Console.Tools;
+using Aevatar.HomeAssistantClient;
+using AISmartHome.Agents;
+using AISmartHome.Tools;
+using AISmartHome.Tools.Extensions;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Kiota.Http.HttpClientLibrary;
 using OpenAI;
 
 namespace AISmartHome.Console;
@@ -36,8 +38,16 @@ class Program
 
         System.Console.WriteLine("🔗 Connecting to Home Assistant...");
 
-        // Initialize Home Assistant client
-        var haClient = new HomeAssistantClient(haBaseUrl, haToken, ignoreSslErrors: true);
+        // Initialize Home Assistant client (kiota-generated)
+        var httpClientHandler = new HttpClientHandler();
+        httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
+        var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(haBaseUrl) };
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", haToken);
+        
+        var authProvider = new Microsoft.Kiota.Abstractions.Authentication.AnonymousAuthenticationProvider();
+        var requestAdapter = new HttpClientRequestAdapter(authProvider, httpClient: httpClient);
+        requestAdapter.BaseUrl = haBaseUrl;
+        var haClient = new HomeAssistantClient(requestAdapter);
         
         // Test connection
         var isConnected = await haClient.PingAsync();
@@ -49,14 +59,14 @@ class Program
         System.Console.WriteLine($"✅ Connected to Home Assistant at {haBaseUrl}");
 
         // Initialize registries
-        var entityRegistry = new EntityRegistry(haClient);
+        var statesRegistry = new StatesRegistry(haClient, haBaseUrl, haToken);
         var serviceRegistry = new ServiceRegistry(haClient);
 
         System.Console.WriteLine("📋 Loading Home Assistant state...");
-        await entityRegistry.RefreshAsync();
+        await statesRegistry.RefreshAsync();
         await serviceRegistry.RefreshAsync();
 
-        var stats = await entityRegistry.GetDomainStatsAsync();
+        var stats = await statesRegistry.GetDomainStatsAsync();
         var serviceCount = await serviceRegistry.GetServiceCountAsync();
         
         System.Console.WriteLine($"✅ Loaded {stats.Values.Sum()} entities across {stats.Count} domains");
@@ -78,16 +88,16 @@ class Program
             .Build();
 
         // Initialize tools
-        var discoveryTools = new DiscoveryTools(entityRegistry, serviceRegistry);
-        var controlTools = new ControlTools(haClient, entityRegistry, serviceRegistry);
-        var validationTools = new ValidationTools(haClient, entityRegistry);
-        var visionTools = new VisionTools(haClient, visionChatClient, entityRegistry);
+        var discoveryTools = new DiscoveryTools(statesRegistry, serviceRegistry);
+        var controlTools = new ControlTools(haClient, statesRegistry, serviceRegistry);
+        var validationTools = new ValidationTools(haClient, statesRegistry);
+        var visionTools = new VisionTools(haClient, statesRegistry);
 
         // Initialize agents
         var discoveryAgent = new DiscoveryAgent(chatClient, discoveryTools);
         var executionAgent = new ExecutionAgent(chatClient, controlTools);
         var validationAgent = new ValidationAgent(chatClient, validationTools);
-        var visionAgent = new VisionAgent(chatClient, visionTools, discoveryAgent, entityRegistry);
+        var visionAgent = new VisionAgent(chatClient, visionTools, discoveryAgent, statesRegistry);
         var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent, validationAgent, visionAgent);
 
         System.Console.WriteLine("✅ Multi-Agent system initialized");
@@ -130,7 +140,7 @@ class Program
             if (input.Equals("refresh", StringComparison.OrdinalIgnoreCase))
             {
                 System.Console.WriteLine("🔄 Refreshing Home Assistant state...");
-                await entityRegistry.RefreshAsync();
+                await statesRegistry.RefreshAsync();
                 await serviceRegistry.RefreshAsync();
                 System.Console.WriteLine("✅ State refreshed");
                 continue;
@@ -178,7 +188,7 @@ class Program
         }
 
         // Cleanup
-        haClient.Dispose();
+        httpClient.Dispose();
     }
 
     private static void PrintBanner()
