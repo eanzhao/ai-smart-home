@@ -15,9 +15,9 @@ namespace Aevatar.HomeAssistantClient.Services
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The max property</summary>
-        public int? Max { get; set; }
+        public double? Max { get; set; }
         /// <summary>The min property</summary>
-        public int? Min { get; set; }
+        public double? Min { get; set; }
         /// <summary>The mode property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -27,7 +27,7 @@ namespace Aevatar.HomeAssistantClient.Services
         public string Mode { get; set; }
 #endif
         /// <summary>The step property</summary>
-        public int? Step { get; set; }
+        public double? Step { get; set; }
         /// <summary>
         /// Instantiates a new <see cref="global::Aevatar.HomeAssistantClient.Services.Services_services_toggle_fields_advanced_fields_fields_brightness_selector_number"/> and sets the default values.
         /// </summary>
@@ -53,10 +53,10 @@ namespace Aevatar.HomeAssistantClient.Services
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "max", n => { Max = n.GetIntValue(); } },
-                { "min", n => { Min = n.GetIntValue(); } },
+                { "max", n => { Max = n.GetDoubleValue(); } },
+                { "min", n => { Min = n.GetDoubleValue(); } },
                 { "mode", n => { Mode = n.GetStringValue(); } },
-                { "step", n => { Step = n.GetIntValue(); } },
+                { "step", n => { Step = n.GetDoubleValue(); } },
             };
         }
         /// <summary>
@@ -66,10 +66,10 @@ namespace Aevatar.HomeAssistantClient.Services
         public virtual void Serialize(ISerializationWriter writer)
         {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
-            writer.WriteIntValue("max", Max);
-            writer.WriteIntValue("min", Min);
+            writer.WriteDoubleValue("max", Max);
+            writer.WriteDoubleValue("min", Min);
             writer.WriteStringValue("mode", Mode);
-            writer.WriteIntValue("step", Step);
+            writer.WriteDoubleValue("step", Step);
             writer.WriteAdditionalData(AdditionalData);
         }
     }

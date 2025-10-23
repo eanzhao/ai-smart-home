@@ -2,8 +2,6 @@ using System.ClientModel;
 using AISmartHome.Agents;
 using Microsoft.Extensions.AI;
 using OpenAI;
-using Azure.AI.OpenAI;
-using System.Text;
 using System.Text.Json;
 using Aevatar.HomeAssistantClient;
 using AISmartHome.Tools;
@@ -39,24 +37,33 @@ var llmEndpoint = builder.Configuration["LLM:Endpoint"] ?? "https://api.openai.c
 // Register Home Assistant client
 builder.Services.AddSingleton<HomeAssistantClient>(sp =>
 {
-    var haBaseUrl = sp.GetRequiredService<IConfiguration>()["HomeAssistant:BaseUrl"] 
-        ?? throw new InvalidOperationException("HomeAssistant:BaseUrl not configured");
-    var haAccessToken = sp.GetRequiredService<IConfiguration>()["HomeAssistant:AccessToken"] 
-        ?? throw new InvalidOperationException("HomeAssistant:AccessToken not configured");
-        
+    Console.WriteLine($"\n[HomeAssistantClient Factory] Initializing client...");
+    Console.WriteLine($"[HomeAssistantClient Factory] BaseUrl from config: '{haBaseUrl}'");
+    Console.WriteLine($"[HomeAssistantClient Factory] Token length: {haAccessToken.Length} chars");
+    
     var httpClientHandler = new HttpClientHandler();
     httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
     var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(haBaseUrl) };
     httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", haAccessToken);
     
+    Console.WriteLine($"[HomeAssistantClient Factory] HttpClient.BaseAddress: '{httpClient.BaseAddress}'");
+    
     var authProvider = new Microsoft.Kiota.Abstractions.Authentication.AnonymousAuthenticationProvider();
     var requestAdapter = new HttpClientRequestAdapter(authProvider, httpClient: httpClient);
     requestAdapter.BaseUrl = haBaseUrl;
+    
+    Console.WriteLine($"[HomeAssistantClient Factory] RequestAdapter.BaseUrl: '{requestAdapter.BaseUrl}'");
+    Console.WriteLine($"[HomeAssistantClient Factory] ✅ Client initialized\n");
+    
     return new HomeAssistantClient(requestAdapter);
 });
 
 // Register registries
-builder.Services.AddSingleton<StatesRegistry>();
+builder.Services.AddSingleton<StatesRegistry>(sp =>
+{
+    var client = sp.GetRequiredService<HomeAssistantClient>();
+    return new StatesRegistry(client, haBaseUrl, haAccessToken);
+});
 builder.Services.AddSingleton<ServiceRegistry>();
 
 // Register tools
@@ -88,9 +95,55 @@ var statesRegistry = app.Services.GetRequiredService<StatesRegistry>();
 var serviceRegistry = app.Services.GetRequiredService<ServiceRegistry>();
 
 Console.WriteLine("🔄 Initializing Home Assistant connection...");
-await statesRegistry.RefreshAsync();
-await serviceRegistry.RefreshAsync();
-Console.WriteLine("✅ Initialization complete!");
+Console.WriteLine($"[Program] Home Assistant URL: {haBaseUrl}");
+Console.WriteLine($"[Program] Token configured: {!string.IsNullOrEmpty(haAccessToken)} (length: {haAccessToken?.Length ?? 0})");
+
+try
+{
+    Console.WriteLine("\n[Program] 📡 Step 1: Refreshing States Registry...");
+    await statesRegistry.RefreshAsync();
+    Console.WriteLine("[Program] ✅ States Registry refreshed successfully");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"\n[Program] ❌ FAILED to refresh States Registry");
+    Console.WriteLine($"[Program] Exception: {ex.GetType().FullName}");
+    Console.WriteLine($"[Program] Message: {ex.Message}");
+    
+    if (ex.InnerException != null)
+    {
+        Console.WriteLine($"[Program] Inner Exception: {ex.InnerException.GetType().FullName}");
+        Console.WriteLine($"[Program] Inner Message: {ex.InnerException.Message}");
+    }
+    
+    Console.WriteLine($"\n[Program] Full Stack Trace:");
+    Console.WriteLine(ex.StackTrace);
+    
+    throw; // Re-throw to stop the application
+}
+
+try
+{
+    Console.WriteLine("\n[Program] 📡 Step 2: Refreshing Service Registry...");
+    await serviceRegistry.RefreshAsync();
+    Console.WriteLine("[Program] ✅ Service Registry refreshed successfully");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"\n[Program] ❌ FAILED to refresh Service Registry");
+    Console.WriteLine($"[Program] Exception: {ex.GetType().FullName}");
+    Console.WriteLine($"[Program] Message: {ex.Message}");
+    
+    if (ex.InnerException != null)
+    {
+        Console.WriteLine($"[Program] Inner Exception: {ex.InnerException.GetType().FullName}");
+        Console.WriteLine($"[Program] Inner Message: {ex.InnerException.Message}");
+    }
+    
+    throw; // Re-throw to stop the application
+}
+
+Console.WriteLine("\n✅ Initialization complete!");
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

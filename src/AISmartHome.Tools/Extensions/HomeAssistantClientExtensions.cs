@@ -52,11 +52,15 @@ public static class HomeAssistantClientExtensions
             System.Console.WriteLine($"[API] Calling Home Assistant service: {domain}.{service}");
             System.Console.WriteLine($"[API] Service data: {JsonSerializer.Serialize(serviceData)}");
 
-            // Convert serviceData to the format expected by kiota client
-            var requestBody = new Dictionary<string, object>(serviceData);
+            // Create request body with service data
+            var requestBody = new global::Aevatar.HomeAssistantClient.Services.Item.Item.WithServicePostRequestBody
+            {
+                AdditionalData = new Dictionary<string, object>(serviceData)
+            };
 
             // Use kiota client to call the service
             var response = await client.Services[domain][service].PostAsWithServicePostResponseAsync(
+                requestBody,
                 cancellationToken: ct);
 
             // Get updated state if entity_id was provided
@@ -136,7 +140,8 @@ public static class HomeAssistantClientExtensions
     {
         try
         {
-            var response = await client.GetAsGetResponseAsync(cancellationToken: ct);
+            var emptyBody = new GetRequestBody();
+            var response = await client.GetAsGetResponseAsync(emptyBody, cancellationToken: ct);
             return response != null;
         }
         catch

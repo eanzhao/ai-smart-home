@@ -26,15 +26,6 @@ paths:
           -H "Content-Type: application/json" http://localhost:8123/api/
         ```
       tags: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-              description: Service data (entity_id and other service-specific parameters)
-              example:
-                entity_id: light.living_room
       parameters: []
       responses:
         '200':
@@ -15040,15 +15031,6 @@ paths:
           http://localhost:8123/api/services/weather/get_forecasts?return_response
         ```
       tags: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-              description: Service data (entity_id and other service-specific parameters)
-              example:
-                entity_id: light.living_room
       parameters:
         - name: domain
           in: path

@@ -26,15 +26,6 @@ paths:
           -H "Content-Type: application/json" http://localhost:8123/api/
         ```
       tags: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-              description: Service data (entity_id and other service-specific parameters)
-              example:
-                entity_id: light.living_room
       parameters: []
       responses:
         '200':
@@ -699,13 +690,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -828,13 +819,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -882,13 +873,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -1003,9 +994,9 @@ paths:
                                             unit:
                                               type: string
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                           required:
                                             - unit
                                             - min
@@ -1045,13 +1036,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -1095,13 +1086,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -1354,9 +1345,9 @@ paths:
                                                     unit:
                                                       type: string
                                                     min:
-                                                      type: number
+                                                      type: integer
                                                     max:
-                                                      type: number
+                                                      type: integer
                                                   required:
                                                     - unit
                                                     - min
@@ -1390,11 +1381,11 @@ paths:
                                                   type: object
                                                   properties:
                                                     min:
-                                                      type: number
+                                                      type: integer
                                                     max:
-                                                      type: number
+                                                      type: integer
                                                     step:
-                                                      type: number
+                                                      type: integer
                                                     mode:
                                                       type: string
                                                   required:
@@ -1431,11 +1422,11 @@ paths:
                                                   type: object
                                                   properties:
                                                     min:
-                                                      type: number
+                                                      type: integer
                                                     max:
-                                                      type: number
+                                                      type: integer
                                                     step:
-                                                      type: number
+                                                      type: integer
                                                     mode:
                                                       type: string
                                                   required:
@@ -1618,13 +1609,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -1707,9 +1698,9 @@ paths:
                                             unit:
                                               type: string
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                           required:
                                             - unit
                                             - min
@@ -1749,13 +1740,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -2008,9 +1999,9 @@ paths:
                                                     unit:
                                                       type: string
                                                     min:
-                                                      type: number
+                                                      type: integer
                                                     max:
-                                                      type: number
+                                                      type: integer
                                                   required:
                                                     - unit
                                                     - min
@@ -2044,11 +2035,11 @@ paths:
                                                   type: object
                                                   properties:
                                                     min:
-                                                      type: number
+                                                      type: integer
                                                     max:
-                                                      type: number
+                                                      type: integer
                                                     step:
-                                                      type: number
+                                                      type: integer
                                                     mode:
                                                       type: string
                                                   required:
@@ -2418,9 +2409,9 @@ paths:
                                             mode:
                                               type: string
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: string
                                           required:
@@ -2456,9 +2447,9 @@ paths:
                                             mode:
                                               type: string
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: string
                                           required:
@@ -2913,13 +2904,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -3083,7 +3074,7 @@ paths:
                                   type: object
                                   properties:
                                     default:
-                                      type: number
+                                      type: integer
                                     selector:
                                       type: object
                                       properties:
@@ -3091,13 +3082,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -4021,13 +4012,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -4340,7 +4331,7 @@ paths:
                                   type: object
                                   properties:
                                     default:
-                                      type: number
+                                      type: integer
                                     selector:
                                       type: object
                                       properties:
@@ -4348,13 +4339,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -4378,7 +4369,7 @@ paths:
                                   type: object
                                   properties:
                                     default:
-                                      type: number
+                                      type: integer
                                     selector:
                                       type: object
                                       properties:
@@ -4386,13 +4377,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -4913,9 +4904,9 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: number
                                             mode:
@@ -5134,7 +5125,7 @@ paths:
                                   type: object
                                   properties:
                                     default:
-                                      type: number
+                                      type: integer
                                     required:
                                       type: boolean
                                     example:
@@ -5756,13 +5747,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                           required:
                                             - min
                                             - max
@@ -6730,9 +6721,9 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: number
                                             mode:
@@ -6779,9 +6770,9 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: number
                                             mode:
@@ -6824,9 +6815,9 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: number
                                             mode:
@@ -6957,13 +6948,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -7278,13 +7269,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -7483,13 +7474,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -7591,13 +7582,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -7667,13 +7658,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -7873,13 +7864,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -8303,9 +8294,9 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: number
                                             mode:
@@ -8430,9 +8421,9 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             step:
                                               type: number
                                             mode:
@@ -9697,13 +9688,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                           required:
                                             - min
                                             - mode
@@ -9729,13 +9720,13 @@ paths:
                                           type: object
                                           properties:
                                             min:
-                                              type: number
+                                              type: integer
                                             max:
-                                              type: number
+                                              type: integer
                                             unit_of_measurement:
                                               type: string
                                             step:
-                                              type: number
+                                              type: integer
                                             mode:
                                               type: string
                                           required:
@@ -14186,11 +14177,11 @@ paths:
                           items:
                             type: string
                         min_temp:
-                          type: number
+                          type: integer
                         max_temp:
-                          type: number
+                          type: integer
                         target_temp_step:
-                          type: number
+                          type: integer
                         fan_modes:
                           type: array
                           items:
@@ -14210,21 +14201,21 @@ paths:
                         preset_mode:
                           type: string
                         min_humidity:
-                          type: number
+                          type: integer
                         max_humidity:
-                          type: number
+                          type: integer
                         supported_color_modes:
                           type: array
                           items:
                             type: string
                         min_color_temp_kelvin:
-                          type: number
+                          type: integer
                         max_color_temp_kelvin:
-                          type: number
+                          type: integer
                         min_mireds:
-                          type: number
+                          type: integer
                         max_mireds:
-                          type: number
+                          type: integer
                         effect_list:
                           type: array
                           items:
@@ -14236,11 +14227,11 @@ paths:
                           items:
                             type: string
                         min:
-                          type: number
+                          type: integer
                         max:
-                          type: number
+                          type: integer
                         step:
-                          type: number
+                          type: integer
                         mode:
                           type: string
                         pattern:
@@ -15040,15 +15031,6 @@ paths:
           http://localhost:8123/api/services/weather/get_forecasts?return_response
         ```
       tags: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-              description: Service data (entity_id and other service-specific parameters)
-              example:
-                entity_id: light.living_room
       parameters:
         - name: domain
           in: path

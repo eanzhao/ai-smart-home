@@ -12,6 +12,8 @@ namespace AISmartHome.Tools;
 public class StatesRegistry
 {
     private readonly HomeAssistantClient _client;
+    private readonly string _baseUrl;
+    private readonly string _accessToken;
     private List<States> _states = new();
     private Dictionary<string, States> _statesIndex = new();
     private DateTime _lastRefresh = DateTime.MinValue;
@@ -27,9 +29,11 @@ public class StatesRegistry
     private int _cacheHits = 0;
     private int _cacheMisses = 0;
 
-    public StatesRegistry(HomeAssistantClient client)
+    public StatesRegistry(HomeAssistantClient client, string baseUrl, string accessToken)
     {
         _client = client;
+        _baseUrl = baseUrl;
+        _accessToken = accessToken;
     }
 
     /// <summary>
@@ -37,11 +41,127 @@ public class StatesRegistry
     /// </summary>
     public async Task RefreshAsync(CancellationToken ct = default)
     {
-        var statesResult = await _client.States.GetAsync(cancellationToken: ct);
-        _states = statesResult ?? new List<States>();
-        _statesIndex = _states.Where(e => !string.IsNullOrEmpty(e.EntityId))
-            .ToDictionary(e => e.EntityId!, e => e);
-        _lastRefresh = DateTime.UtcNow;
+        System.Console.WriteLine("[StatesRegistry] Starting RefreshAsync...");
+        System.Console.WriteLine($"[StatesRegistry] Client base URL: {_baseUrl}");
+        
+        try
+        {
+            System.Console.WriteLine("[StatesRegistry] Calling _client.States.GetAsync()...");
+            var statesResult = await _client.States.GetAsync(cancellationToken: ct);
+            
+            System.Console.WriteLine($"[StatesRegistry] GetAsync returned successfully. Result is null: {statesResult == null}");
+            if (statesResult != null)
+            {
+                System.Console.WriteLine($"[StatesRegistry] Number of states returned: {statesResult.Count}");
+            }
+            
+            _states = statesResult ?? new List<States>();
+            _statesIndex = _states.Where(e => !string.IsNullOrEmpty(e.EntityId))
+                .ToDictionary(e => e.EntityId!, e => e);
+            _lastRefresh = DateTime.UtcNow;
+            
+            System.Console.WriteLine($"[StatesRegistry] Successfully loaded {_states.Count} states into cache");
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"[StatesRegistry] ❌ ERROR during RefreshAsync:");
+            System.Console.WriteLine($"[StatesRegistry]    Exception Type: {ex.GetType().FullName}");
+            System.Console.WriteLine($"[StatesRegistry]    Message: {ex.Message}");
+            
+            if (ex.InnerException != null)
+            {
+                System.Console.WriteLine($"[StatesRegistry]    Inner Exception: {ex.InnerException.GetType().FullName}");
+                System.Console.WriteLine($"[StatesRegistry]    Inner Message: {ex.InnerException.Message}");
+            }
+            
+            // Try to fetch raw JSON for debugging
+            System.Console.WriteLine($"\n[StatesRegistry] 🔍 Attempting to fetch raw JSON response for debugging...");
+            try
+            {
+                var rawUrl = $"{_baseUrl}/states";
+                System.Console.WriteLine($"[StatesRegistry]    Fetching: {rawUrl}");
+                
+                // Create a new HttpClient with auth for debugging
+                var debugHttpClient = new HttpClient();
+                debugHttpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
+                
+                // Disable SSL validation for debugging (same as main client)
+                var handler = new HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
+                var debugClient = new HttpClient(handler);
+                debugClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
+                
+                var response = await debugClient.GetAsync(rawUrl, ct);
+                System.Console.WriteLine($"[StatesRegistry]    Status Code: {response.StatusCode}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var rawJson = await response.Content.ReadAsStringAsync(ct);
+                    System.Console.WriteLine($"[StatesRegistry]    Response Length: {rawJson.Length} characters");
+                    System.Console.WriteLine($"\n[StatesRegistry] 📄 First 2000 characters of raw JSON response:");
+                    System.Console.WriteLine("─".PadRight(80, '─'));
+                    System.Console.WriteLine(rawJson.Length > 2000 ? rawJson.Substring(0, 2000) + "..." : rawJson);
+                    System.Console.WriteLine("─".PadRight(80, '─'));
+                    
+                    // Try to parse and pretty-print
+                    try
+                    {
+                        using var jsonDoc = System.Text.Json.JsonDocument.Parse(rawJson);
+                        System.Console.WriteLine($"\n[StatesRegistry] 📊 JSON Structure Analysis:");
+                        System.Console.WriteLine($"    Root element kind: {jsonDoc.RootElement.ValueKind}");
+                        
+                        if (jsonDoc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        {
+                            System.Console.WriteLine($"    Array length: {jsonDoc.RootElement.GetArrayLength()}");
+                            
+                            if (jsonDoc.RootElement.GetArrayLength() > 0)
+                            {
+                                var firstItem = jsonDoc.RootElement[0];
+                                System.Console.WriteLine($"\n[StatesRegistry] 📋 First item structure:");
+                                foreach (var prop in firstItem.EnumerateObject())
+                                {
+                                    System.Console.WriteLine($"      - {prop.Name}: {prop.Value.ValueKind}");
+                                }
+                                
+                                // Search for problematic numeric fields
+                                System.Console.WriteLine($"\n[StatesRegistry] 🔍 Searching for potential problematic fields:");
+                                var problematicFields = new[] { "max", "min", "max_temp", "min_temp", "max_humidity", "min_humidity", "max_mireds", "min_mireds", "max_color_temp_kelvin", "min_color_temp_kelvin" };
+                                
+                                foreach (var entity in jsonDoc.RootElement.EnumerateArray())
+                                {
+                                    if (entity.TryGetProperty("attributes", out var attrs))
+                                    {
+                                        foreach (var field in problematicFields)
+                                        {
+                                            if (attrs.TryGetProperty(field, out var value))
+                                            {
+                                                var entityId = entity.TryGetProperty("entity_id", out var eid) ? eid.GetString() : "unknown";
+                                                System.Console.WriteLine($"      Found '{field}' in {entityId}: {value} (type: {value.ValueKind})");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception parseEx)
+                    {
+                        System.Console.WriteLine($"[StatesRegistry]    Failed to parse JSON: {parseEx.Message}");
+                    }
+                }
+                
+                debugClient.Dispose();
+            }
+            catch (Exception debugEx)
+            {
+                System.Console.WriteLine($"[StatesRegistry]    Failed to fetch raw response: {debugEx.Message}");
+                System.Console.WriteLine($"[StatesRegistry]    Stack trace: {debugEx.StackTrace}");
+            }
+            
+            throw; // Re-throw the original exception
+        }
     }
 
     /// <summary>

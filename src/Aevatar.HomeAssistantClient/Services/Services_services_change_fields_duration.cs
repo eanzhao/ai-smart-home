@@ -15,7 +15,7 @@ namespace Aevatar.HomeAssistantClient.Services
         /// <summary>Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.</summary>
         public IDictionary<string, object> AdditionalData { get; set; }
         /// <summary>The default property</summary>
-        public int? Default { get; set; }
+        public double? Default { get; set; }
         /// <summary>The description property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -75,7 +75,7 @@ namespace Aevatar.HomeAssistantClient.Services
         {
             return new Dictionary<string, Action<IParseNode>>
             {
-                { "default", n => { Default = n.GetIntValue(); } },
+                { "default", n => { Default = n.GetDoubleValue(); } },
                 { "description", n => { Description = n.GetStringValue(); } },
                 { "example", n => { Example = n.GetStringValue(); } },
                 { "name", n => { Name = n.GetStringValue(); } },
@@ -90,7 +90,7 @@ namespace Aevatar.HomeAssistantClient.Services
         public virtual void Serialize(ISerializationWriter writer)
         {
             _ = writer ?? throw new ArgumentNullException(nameof(writer));
-            writer.WriteIntValue("default", Default);
+            writer.WriteDoubleValue("default", Default);
             writer.WriteStringValue("description", Description);
             writer.WriteStringValue("example", Example);
             writer.WriteStringValue("name", Name);

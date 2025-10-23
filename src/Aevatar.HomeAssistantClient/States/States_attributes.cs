@@ -197,25 +197,25 @@ namespace Aevatar.HomeAssistantClient.States
         public string MarkerType { get; set; }
 #endif
         /// <summary>The max property</summary>
-        public int? Max { get; set; }
+        public double? Max { get; set; }
         /// <summary>The max_color_temp_kelvin property</summary>
-        public int? MaxColorTempKelvin { get; set; }
+        public double? MaxColorTempKelvin { get; set; }
         /// <summary>The max_humidity property</summary>
-        public int? MaxHumidity { get; set; }
+        public double? MaxHumidity { get; set; }
         /// <summary>The max_mireds property</summary>
-        public int? MaxMireds { get; set; }
+        public double? MaxMireds { get; set; }
         /// <summary>The max_temp property</summary>
-        public int? MaxTemp { get; set; }
+        public double? MaxTemp { get; set; }
         /// <summary>The min property</summary>
-        public int? Min { get; set; }
+        public double? Min { get; set; }
         /// <summary>The min_color_temp_kelvin property</summary>
-        public int? MinColorTempKelvin { get; set; }
+        public double? MinColorTempKelvin { get; set; }
         /// <summary>The min_humidity property</summary>
-        public int? MinHumidity { get; set; }
+        public double? MinHumidity { get; set; }
         /// <summary>The min_mireds property</summary>
-        public int? MinMireds { get; set; }
+        public double? MinMireds { get; set; }
         /// <summary>The min_temp property</summary>
-        public int? MinTemp { get; set; }
+        public double? MinTemp { get; set; }
         /// <summary>The mode property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -387,7 +387,7 @@ namespace Aevatar.HomeAssistantClient.States
         public UntypedNode StateReason { get; set; }
 #endif
         /// <summary>The step property</summary>
-        public int? Step { get; set; }
+        public double? Step { get; set; }
         /// <summary>The supported_color_modes property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -407,7 +407,7 @@ namespace Aevatar.HomeAssistantClient.States
         public List<string> SwingModes { get; set; }
 #endif
         /// <summary>The target_temp_step property</summary>
-        public int? TargetTempStep { get; set; }
+        public double? TargetTempStep { get; set; }
         /// <summary>The title property</summary>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
@@ -504,16 +504,16 @@ namespace Aevatar.HomeAssistantClient.States
                 { "marker_high_level", n => { MarkerHighLevel = n.GetIntValue(); } },
                 { "marker_low_level", n => { MarkerLowLevel = n.GetIntValue(); } },
                 { "marker_type", n => { MarkerType = n.GetStringValue(); } },
-                { "max", n => { Max = n.GetIntValue(); } },
-                { "max_color_temp_kelvin", n => { MaxColorTempKelvin = n.GetIntValue(); } },
-                { "max_humidity", n => { MaxHumidity = n.GetIntValue(); } },
-                { "max_mireds", n => { MaxMireds = n.GetIntValue(); } },
-                { "max_temp", n => { MaxTemp = n.GetIntValue(); } },
-                { "min", n => { Min = n.GetIntValue(); } },
-                { "min_color_temp_kelvin", n => { MinColorTempKelvin = n.GetIntValue(); } },
-                { "min_humidity", n => { MinHumidity = n.GetIntValue(); } },
-                { "min_mireds", n => { MinMireds = n.GetIntValue(); } },
-                { "min_temp", n => { MinTemp = n.GetIntValue(); } },
+                { "max", n => { Max = n.GetDoubleValue(); } },
+                { "max_color_temp_kelvin", n => { MaxColorTempKelvin = n.GetDoubleValue(); } },
+                { "max_humidity", n => { MaxHumidity = n.GetDoubleValue(); } },
+                { "max_mireds", n => { MaxMireds = n.GetDoubleValue(); } },
+                { "max_temp", n => { MaxTemp = n.GetDoubleValue(); } },
+                { "min", n => { Min = n.GetDoubleValue(); } },
+                { "min_color_temp_kelvin", n => { MinColorTempKelvin = n.GetDoubleValue(); } },
+                { "min_humidity", n => { MinHumidity = n.GetDoubleValue(); } },
+                { "min_mireds", n => { MinMireds = n.GetDoubleValue(); } },
+                { "min_temp", n => { MinTemp = n.GetDoubleValue(); } },
                 { "mode", n => { Mode = n.GetStringValue(); } },
                 { "next_dawn", n => { NextDawn = n.GetStringValue(); } },
                 { "next_dusk", n => { NextDusk = n.GetStringValue(); } },
@@ -539,11 +539,11 @@ namespace Aevatar.HomeAssistantClient.States
                 { "state_class", n => { StateClass = n.GetStringValue(); } },
                 { "state_message", n => { StateMessage = n.GetStringValue(); } },
                 { "state_reason", n => { StateReason = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
-                { "step", n => { Step = n.GetIntValue(); } },
+                { "step", n => { Step = n.GetDoubleValue(); } },
                 { "supported_color_modes", n => { SupportedColorModes = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
                 { "supported_features", n => { SupportedFeatures = n.GetIntValue(); } },
                 { "swing_modes", n => { SwingModes = n.GetCollectionOfPrimitiveValues<string>()?.AsList(); } },
-                { "target_temp_step", n => { TargetTempStep = n.GetIntValue(); } },
+                { "target_temp_step", n => { TargetTempStep = n.GetDoubleValue(); } },
                 { "title", n => { Title = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
                 { "unit_of_measurement", n => { UnitOfMeasurement = n.GetStringValue(); } },
                 { "update_percentage", n => { UpdatePercentage = n.GetObjectValue<UntypedNode>(UntypedNode.CreateFromDiscriminatorValue); } },
@@ -589,16 +589,16 @@ namespace Aevatar.HomeAssistantClient.States
             writer.WriteIntValue("marker_high_level", MarkerHighLevel);
             writer.WriteIntValue("marker_low_level", MarkerLowLevel);
             writer.WriteStringValue("marker_type", MarkerType);
-            writer.WriteIntValue("max", Max);
-            writer.WriteIntValue("max_color_temp_kelvin", MaxColorTempKelvin);
-            writer.WriteIntValue("max_humidity", MaxHumidity);
-            writer.WriteIntValue("max_mireds", MaxMireds);
-            writer.WriteIntValue("max_temp", MaxTemp);
-            writer.WriteIntValue("min", Min);
-            writer.WriteIntValue("min_color_temp_kelvin", MinColorTempKelvin);
-            writer.WriteIntValue("min_humidity", MinHumidity);
-            writer.WriteIntValue("min_mireds", MinMireds);
-            writer.WriteIntValue("min_temp", MinTemp);
+            writer.WriteDoubleValue("max", Max);
+            writer.WriteDoubleValue("max_color_temp_kelvin", MaxColorTempKelvin);
+            writer.WriteDoubleValue("max_humidity", MaxHumidity);
+            writer.WriteDoubleValue("max_mireds", MaxMireds);
+            writer.WriteDoubleValue("max_temp", MaxTemp);
+            writer.WriteDoubleValue("min", Min);
+            writer.WriteDoubleValue("min_color_temp_kelvin", MinColorTempKelvin);
+            writer.WriteDoubleValue("min_humidity", MinHumidity);
+            writer.WriteDoubleValue("min_mireds", MinMireds);
+            writer.WriteDoubleValue("min_temp", MinTemp);
             writer.WriteStringValue("mode", Mode);
             writer.WriteStringValue("next_dawn", NextDawn);
             writer.WriteStringValue("next_dusk", NextDusk);
@@ -624,11 +624,11 @@ namespace Aevatar.HomeAssistantClient.States
             writer.WriteStringValue("state_class", StateClass);
             writer.WriteStringValue("state_message", StateMessage);
             writer.WriteObjectValue<UntypedNode>("state_reason", StateReason);
-            writer.WriteIntValue("step", Step);
+            writer.WriteDoubleValue("step", Step);
             writer.WriteCollectionOfPrimitiveValues<string>("supported_color_modes", SupportedColorModes);
             writer.WriteIntValue("supported_features", SupportedFeatures);
             writer.WriteCollectionOfPrimitiveValues<string>("swing_modes", SwingModes);
-            writer.WriteIntValue("target_temp_step", TargetTempStep);
+            writer.WriteDoubleValue("target_temp_step", TargetTempStep);
             writer.WriteObjectValue<UntypedNode>("title", Title);
             writer.WriteStringValue("unit_of_measurement", UnitOfMeasurement);
             writer.WriteObjectValue<UntypedNode>("update_percentage", UpdatePercentage);

@@ -110,56 +110,63 @@ namespace Aevatar.HomeAssistantClient
         /// Returns a message if the API is up and running.```{  &quot;message&quot;: &quot;API running.&quot;}```Sample `curl` command:```curl \  -H &quot;Authorization: Bearer TOKEN&quot; \  -H &quot;Content-Type: application/json&quot; http://localhost:8123/api/```
         /// </summary>
         /// <returns>A <see cref="global::Aevatar.HomeAssistantClient.GetResponse"/></returns>
+        /// <param name="body">Service data (entity_id and other service-specific parameters)</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::Aevatar.HomeAssistantClient.GetResponse?> GetAsGetResponseAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::Aevatar.HomeAssistantClient.GetResponse?> GetAsGetResponseAsync(global::Aevatar.HomeAssistantClient.GetRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::Aevatar.HomeAssistantClient.GetResponse> GetAsGetResponseAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::Aevatar.HomeAssistantClient.GetResponse> GetAsGetResponseAsync(global::Aevatar.HomeAssistantClient.GetRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
-            var requestInfo = ToGetRequestInformation(requestConfiguration);
+            _ = body ?? throw new ArgumentNullException(nameof(body));
+            var requestInfo = ToGetRequestInformation(body, requestConfiguration);
             return await RequestAdapter.SendAsync<global::Aevatar.HomeAssistantClient.GetResponse>(requestInfo, global::Aevatar.HomeAssistantClient.GetResponse.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Returns a message if the API is up and running.```{  &quot;message&quot;: &quot;API running.&quot;}```Sample `curl` command:```curl \  -H &quot;Authorization: Bearer TOKEN&quot; \  -H &quot;Content-Type: application/json&quot; http://localhost:8123/api/```
         /// </summary>
         /// <returns>A <see cref="global::Aevatar.HomeAssistantClient.Response"/></returns>
+        /// <param name="body">Service data (entity_id and other service-specific parameters)</param>
         /// <param name="cancellationToken">Cancellation token to use when cancelling requests</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
         [Obsolete("This method is obsolete. Use GetAsGetResponseAsync instead.")]
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public async Task<global::Aevatar.HomeAssistantClient.Response?> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::Aevatar.HomeAssistantClient.Response?> GetAsync(global::Aevatar.HomeAssistantClient.GetRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #nullable restore
 #else
-        public async Task<global::Aevatar.HomeAssistantClient.Response> GetAsync(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
+        public async Task<global::Aevatar.HomeAssistantClient.Response> GetAsync(global::Aevatar.HomeAssistantClient.GetRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default, CancellationToken cancellationToken = default)
         {
 #endif
-            var requestInfo = ToGetRequestInformation(requestConfiguration);
+            _ = body ?? throw new ArgumentNullException(nameof(body));
+            var requestInfo = ToGetRequestInformation(body, requestConfiguration);
             return await RequestAdapter.SendAsync<global::Aevatar.HomeAssistantClient.Response>(requestInfo, global::Aevatar.HomeAssistantClient.Response.CreateFromDiscriminatorValue, default, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Returns a message if the API is up and running.```{  &quot;message&quot;: &quot;API running.&quot;}```Sample `curl` command:```curl \  -H &quot;Authorization: Bearer TOKEN&quot; \  -H &quot;Content-Type: application/json&quot; http://localhost:8123/api/```
         /// </summary>
         /// <returns>A <see cref="RequestInformation"/></returns>
+        /// <param name="body">Service data (entity_id and other service-specific parameters)</param>
         /// <param name="requestConfiguration">Configuration for the request such as headers, query parameters, and middleware options.</param>
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 #nullable enable
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(global::Aevatar.HomeAssistantClient.GetRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>>? requestConfiguration = default)
         {
 #nullable restore
 #else
-        public RequestInformation ToGetRequestInformation(Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
+        public RequestInformation ToGetRequestInformation(global::Aevatar.HomeAssistantClient.GetRequestBody body, Action<RequestConfiguration<DefaultQueryParameters>> requestConfiguration = default)
         {
 #endif
+            _ = body ?? throw new ArgumentNullException(nameof(body));
             var requestInfo = new RequestInformation(Method.GET, UrlTemplate, PathParameters);
             requestInfo.Configure(requestConfiguration);
             requestInfo.Headers.TryAdd("Accept", "application/json");
+            requestInfo.SetContentFromParsable(RequestAdapter, "application/json", body);
             return requestInfo;
         }
         /// <summary>

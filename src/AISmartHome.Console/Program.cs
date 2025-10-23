@@ -59,7 +59,7 @@ class Program
         System.Console.WriteLine($"✅ Connected to Home Assistant at {haBaseUrl}");
 
         // Initialize registries
-        var statesRegistry = new StatesRegistry(haClient);
+        var statesRegistry = new StatesRegistry(haClient, haBaseUrl, haToken);
         var serviceRegistry = new ServiceRegistry(haClient);
 
         System.Console.WriteLine("📋 Loading Home Assistant state...");
