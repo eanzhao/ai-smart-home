@@ -1,5 +1,6 @@
 using AISmartHome.Tools;
 using AISmartHome.Tools.Extensions;
+using AISmartHome.Agents.Events;
 using Microsoft.Extensions.AI;
 using System.Diagnostics;
 using System.Text;
@@ -18,17 +19,54 @@ public class VisionAgent
     private readonly VisionTools _visionTools;
     private readonly DiscoveryAgent _discoveryAgent;
     private readonly StatesRegistry _statesRegistry;
+    private readonly EventBus? _eventBus;
 
     public VisionAgent(
         IChatClient chatClient,
         VisionTools visionTools,
         DiscoveryAgent discoveryAgent,
-        StatesRegistry statesRegistry)
+        StatesRegistry statesRegistry,
+        EventBus? eventBus = null)
     {
         _chatClient = chatClient;
         _visionTools = visionTools;
         _discoveryAgent = discoveryAgent;
         _statesRegistry = statesRegistry;
+        _eventBus = eventBus;
+        
+        Console.WriteLine($"[VisionAgent] Initialized (EventBus: {(eventBus != null ? "enabled" : "disabled")})");
+    }
+    
+    /// <summary>
+    /// Publish a vision event to the event bus (if available)
+    /// </summary>
+    private async Task PublishVisionEventAsync(
+        string cameraEntityId,
+        VisionDetectionType detectionType,
+        string description,
+        double confidence = 0.8,
+        Dictionary<string, object>? details = null)
+    {
+        if (_eventBus == null) return;
+        
+        var visionEvent = new VisionEvent
+        {
+            CameraEntityId = cameraEntityId,
+            DetectionType = detectionType,
+            Confidence = confidence,
+            Details = details,
+            Payload = description
+        };
+        
+        try
+        {
+            await _eventBus.PublishAsync(visionEvent);
+            Console.WriteLine($"[VisionAgent] Published event: {detectionType} (camera: {cameraEntityId})");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Failed to publish vision event: {ex.Message}");
+        }
     }
 
     /// <summary>

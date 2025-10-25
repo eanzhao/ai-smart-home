@@ -100,7 +100,28 @@ class Program
         var visionAgent = new VisionAgent(chatClient, visionTools, discoveryAgent, statesRegistry);
         var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent, validationAgent, visionAgent);
 
+        // Initialize new Phase 1 agents and modules
+        var reasoningAgent = new ReasoningAgent(chatClient);
+        var planningModule = new AISmartHome.Agents.Modules.PlanningModule(chatClient);
+        var parallelCoordinator = new AISmartHome.Agents.Modules.ParallelCoordinator();
+
+        // Initialize Phase 2 - Memory & Learning
+        var vectorStore = new AISmartHome.Agents.Storage.InMemoryVectorStore();
+        var embeddingService = new AISmartHome.Agents.Storage.OpenAIEmbeddingService(
+            llmApiKey,
+            llmEndpoint,
+            model: "text-embedding-3-small"
+        );
+        var memoryStorePath = Path.Combine(Directory.GetCurrentDirectory(), "data", "memories.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(memoryStorePath)!);
+        var memoryStore = new AISmartHome.Agents.Storage.MemoryStore(vectorStore, embeddingService, memoryStorePath);
+        var memoryAgent = new MemoryAgent(memoryStore);
+        var reflectionAgent = new ReflectionAgent(chatClient, memoryAgent);
+        var preferenceLearning = new AISmartHome.Agents.Modules.PreferenceLearning(memoryAgent);
+
         System.Console.WriteLine("✅ Multi-Agent system initialized");
+        System.Console.WriteLine("✅ Phase 1 enhancements loaded: ReasoningAgent, PlanningModule, ParallelCoordinator");
+        System.Console.WriteLine("✅ Phase 2 enhancements loaded: MemoryAgent, ReflectionAgent, PreferenceLearning");
         System.Console.WriteLine("\n" + "=".PadRight(60, '='));
         System.Console.WriteLine("🏠 Home Assistant AI Control System");
         System.Console.WriteLine("=".PadRight(60, '='));

@@ -88,6 +88,32 @@ builder.Services.AddSingleton<ExecutionAgent>();
 builder.Services.AddSingleton<ValidationAgent>();
 builder.Services.AddSingleton<OrchestratorAgent>();
 
+// Register new Phase 1 agents and modules
+builder.Services.AddSingleton<ReasoningAgent>();
+builder.Services.AddSingleton<AISmartHome.Agents.Modules.PlanningModule>();
+builder.Services.AddSingleton(sp => new AISmartHome.Agents.Modules.ParallelCoordinator());
+
+// Register Phase 2 - Memory & Learning
+builder.Services.AddSingleton<AISmartHome.Agents.Storage.IVectorStore>(sp => 
+    new AISmartHome.Agents.Storage.InMemoryVectorStore());
+builder.Services.AddSingleton<AISmartHome.Agents.Storage.IEmbeddingService>(sp =>
+    new AISmartHome.Agents.Storage.OpenAIEmbeddingService(
+        llmApiKey,
+        llmEndpoint,
+        model: "text-embedding-3-small"
+    ));
+builder.Services.AddSingleton<AISmartHome.Agents.Storage.MemoryStore>(sp =>
+{
+    var vectorStore = sp.GetRequiredService<AISmartHome.Agents.Storage.IVectorStore>();
+    var embeddingService = sp.GetRequiredService<AISmartHome.Agents.Storage.IEmbeddingService>();
+    var persistencePath = Path.Combine(Directory.GetCurrentDirectory(), "data", "memories.json");
+    Directory.CreateDirectory(Path.GetDirectoryName(persistencePath)!);
+    return new AISmartHome.Agents.Storage.MemoryStore(vectorStore, embeddingService, persistencePath);
+});
+builder.Services.AddSingleton<MemoryAgent>();
+builder.Services.AddSingleton<ReflectionAgent>();
+builder.Services.AddSingleton<AISmartHome.Agents.Modules.PreferenceLearning>();
+
 var app = builder.Build();
 
 // Initialize registries
