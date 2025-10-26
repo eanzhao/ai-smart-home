@@ -192,10 +192,11 @@ app.MapPost("/agent/chat", async (HttpContext context, OrchestratorAgent orchest
             return Results.BadRequest(new { error = "Message is required" });
         }
 
-        // Set SSE headers
+        // Set SSE headers (HTTP/2 and HTTP/3 compatible)
         context.Response.Headers.Append("Content-Type", "text/event-stream");
         context.Response.Headers.Append("Cache-Control", "no-cache");
-        context.Response.Headers.Append("Connection", "keep-alive");
+        // Note: "Connection: keep-alive" removed - invalid for HTTP/2 and HTTP/3
+        // HTTP/2 and HTTP/3 connections are persistent by default
 
         var response = await orchestrator.ProcessMessageAsync(request.Message, context.RequestAborted);
 
