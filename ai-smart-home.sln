@@ -56,6 +56,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.Agents", "src\A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.Tools", "src\AISmartHome.Tools\AISmartHome.Tools.csproj", "{81524E34-339B-40DC-AFAF-3DA16C88F3A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AISmartHome.Agents.Tests", "test\AISmartHome.Agents.Tests\AISmartHome.Agents.Tests.csproj", "{02751F65-835F-47C2-8B4A-176FA6E8AD02}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +74,7 @@ Global
 		{4DD4C930-D7BB-4F15-9D08-F66C846E5DC5} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
 		{DF12607A-11B4-4DF3-B0EE-8D5F3CA94616} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
 		{81524E34-339B-40DC-AFAF-3DA16C88F3A5} = {DA876F68-9687-464C-9157-3DA8EE62B2E0}
+		{02751F65-835F-47C2-8B4A-176FA6E8AD02} = {2AAB526F-848E-46E5-82F9-74AD32196D60}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{44CB8FF6-F4CB-436F-A759-4355BF68296A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -114,5 +117,9 @@ Global
 		{81524E34-339B-40DC-AFAF-3DA16C88F3A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81524E34-339B-40DC-AFAF-3DA16C88F3A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81524E34-339B-40DC-AFAF-3DA16C88F3A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02751F65-835F-47C2-8B4A-176FA6E8AD02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02751F65-835F-47C2-8B4A-176FA6E8AD02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02751F65-835F-47C2-8B4A-176FA6E8AD02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02751F65-835F-47C2-8B4A-176FA6E8AD02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
