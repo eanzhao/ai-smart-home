@@ -93,12 +93,11 @@ class Program
         var validationTools = new ValidationTools(haClient, statesRegistry);
         var visionTools = new VisionTools(haClient, statesRegistry);
 
-        // Initialize agents
+        // Initialize base agents
         var discoveryAgent = new DiscoveryAgent(chatClient, discoveryTools);
         var executionAgent = new ExecutionAgent(chatClient, controlTools);
         var validationAgent = new ValidationAgent(chatClient, validationTools);
         var visionAgent = new VisionAgent(chatClient, visionTools, discoveryAgent, statesRegistry);
-        var orchestrator = new OrchestratorAgent(chatClient, discoveryAgent, executionAgent, validationAgent, visionAgent);
 
         // Initialize new Phase 1 agents and modules
         var reasoningAgent = new ReasoningAgent(chatClient);
@@ -119,9 +118,26 @@ class Program
         var reflectionAgent = new ReflectionAgent(chatClient, memoryAgent);
         var preferenceLearning = new AISmartHome.Agents.Modules.PreferenceLearning(memoryAgent);
 
+        // Initialize Orchestrator with ALL agents (integrated system)
+        var orchestrator = new OrchestratorAgent(
+            chatClient,
+            discoveryAgent,
+            executionAgent,
+            validationAgent,
+            visionAgent,
+            reasoningAgent,       // Intelligent reasoning
+            memoryAgent,          // Long-term memory
+            reflectionAgent,      // Self-learning
+            planningModule,       // Task planning
+            parallelCoordinator,  // Parallel execution
+            enableIntelligentMode: true  // Enable all intelligent features
+        );
+
         System.Console.WriteLine("✅ Multi-Agent system initialized");
-        System.Console.WriteLine("✅ Phase 1 enhancements loaded: ReasoningAgent, PlanningModule, ParallelCoordinator");
-        System.Console.WriteLine("✅ Phase 2 enhancements loaded: MemoryAgent, ReflectionAgent, PreferenceLearning");
+        System.Console.WriteLine("✅ Intelligent Mode: ENABLED - ReasoningAgent will analyze all requests");
+        System.Console.WriteLine("✅ Memory System: ENABLED - System will learn from your preferences");
+        System.Console.WriteLine("✅ Reflection: ENABLED - System will learn from every execution");
+        System.Console.WriteLine("✅ Complex Task Planning: ENABLED - Handles batch operations and multi-step tasks");
         System.Console.WriteLine("\n" + "=".PadRight(60, '='));
         System.Console.WriteLine("🏠 Home Assistant AI Control System");
         System.Console.WriteLine("=".PadRight(60, '='));

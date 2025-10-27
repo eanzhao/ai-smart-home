@@ -82,11 +82,10 @@ builder.Services.AddSingleton<IChatClient>(sp =>
     return chatClient;
 });
 
-// Register agents
+// Register agents (order matters for dependencies)
 builder.Services.AddSingleton<DiscoveryAgent>();
 builder.Services.AddSingleton<ExecutionAgent>();
 builder.Services.AddSingleton<ValidationAgent>();
-builder.Services.AddSingleton<OrchestratorAgent>();
 
 // Register new Phase 1 agents and modules
 builder.Services.AddSingleton<ReasoningAgent>();
@@ -113,6 +112,35 @@ builder.Services.AddSingleton<AISmartHome.Agents.Storage.MemoryStore>(sp =>
 builder.Services.AddSingleton<MemoryAgent>();
 builder.Services.AddSingleton<ReflectionAgent>();
 builder.Services.AddSingleton<AISmartHome.Agents.Modules.PreferenceLearning>();
+
+// Register Orchestrator with all agents (must be last)
+builder.Services.AddSingleton<OrchestratorAgent>(sp =>
+{
+    var chatClient = sp.GetRequiredService<IChatClient>();
+    var discoveryAgent = sp.GetRequiredService<DiscoveryAgent>();
+    var executionAgent = sp.GetRequiredService<ExecutionAgent>();
+    var validationAgent = sp.GetRequiredService<ValidationAgent>();
+    var visionAgent = sp.GetService<VisionAgent>();
+    var reasoningAgent = sp.GetService<ReasoningAgent>();
+    var memoryAgent = sp.GetService<MemoryAgent>();
+    var reflectionAgent = sp.GetService<ReflectionAgent>();
+    var planningModule = sp.GetService<AISmartHome.Agents.Modules.PlanningModule>();
+    var parallelCoordinator = sp.GetService<AISmartHome.Agents.Modules.ParallelCoordinator>();
+    
+    return new OrchestratorAgent(
+        chatClient,
+        discoveryAgent,
+        executionAgent,
+        validationAgent,
+        visionAgent,
+        reasoningAgent,
+        memoryAgent,
+        reflectionAgent,
+        planningModule,
+        parallelCoordinator,
+        enableIntelligentMode: true  // Enable intelligent features
+    );
+});
 
 var app = builder.Build();
 
